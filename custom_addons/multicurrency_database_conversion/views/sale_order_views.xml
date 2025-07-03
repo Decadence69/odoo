@@ -1,0 +1,18 @@
+<odoo>
+    <data>
+        <record id="view_sale_order_form_inherit_myr" model="ir.ui.view">
+            <field name="name">sale.order.form.inherit.myr</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+
+                <!-- Safer: Inject into the first group inside the first page -->
+                <xpath expr="//sheet//group" position="inside">
+                    <field name="actual_foreign_amount"/>
+                    <field name="amount_in_myr"/>
+                </xpath>
+
+            </field>
+        </record>
+    </data>
+</odoo>

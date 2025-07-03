@@ -1,0 +1,14 @@
+<odoo>
+  <template id="user_inventory_sync_button_inline" inherit_id="sale.sale_order_portal_content">
+    <xpath expr="//div[@id='intro_row']/h2" position="after">
+      <t t-if="sale_order.state in ['sale', 'done']">
+        <div class="mt-2 mb-3 d-flex justify-content-end">
+          <a t-attf-href="/my/order/{{ sale_order.id }}/sync_inventory"
+             class="btn btn-outline-primary">
+            Update Inventory with This Order
+          </a>
+        </div>
+      </t>
+    </xpath>
+  </template>
+</odoo>

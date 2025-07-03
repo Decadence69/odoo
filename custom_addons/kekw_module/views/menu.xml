@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <menuitem id="menu_kekw_root" name="Kekw"/>
-    <menuitem id="menu_kekw_child" name="Kekw-mini" parent="menu_kekw_root"/>
-    <menuitem id="menu_kekw_child2" name="Kekw-mini-mini" parent="menu_kekw_child"/>
-
-</odoo>

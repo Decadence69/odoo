@@ -1,0 +1,48 @@
+<odoo>
+  <template id="portal_inventory_template" name="User Inventory Page">
+    <t t-call="website.layout">
+      <div class="container my-5">
+        <h2 class="mb-4">My Inventory</h2>
+
+        <form t-att-action="url_for('/my/inventory/update')" method="post">
+          <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+          <table class="table table-striped align-middle">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Total Ordered</th>
+                <th>Current Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              <t t-foreach="inventory" t-as="line">
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <img t-att-src="'/web/image/product.product/%s/image_128' % line.product_id.id"
+                           class="rounded me-2"
+                           style="width: 48px; height: 48px;" />
+                      <a t-attf-href="/shop/product/{{ line.product_id.id }}">
+                        <t t-esc="line.product_id.display_name"/>
+                      </a>
+                    </div>
+                  </td>
+                  <td><t t-esc="line.total_ordered_qty"/></td>
+                  <td>
+                    <input type="number"
+                      class="form-control"
+                      t-att-name="'qty_{}'.format(line.id)"
+                      t-att-value="str(line.current_qty or 0)"
+                      min="0"/>
+                  </td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+
+          <button type="submit" class="btn btn-primary mt-3">Save Inventory</button>
+        </form>
+      </div>
+    </t>
+  </template>
+</odoo>
