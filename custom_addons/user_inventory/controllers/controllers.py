@@ -10,6 +10,8 @@ class PortalInventory(http.Controller):
     def portal_inventory(self, **kw):
         user = request.env.user
         inventory_model = request.env['user.inventory.line'].sudo()
+        product_model = request.env['product.product'].sudo()
+        product_suggestions = product_model.search([('type', '!=', 'service')], limit=50)
 
         # Fetch all confirmed orders
         orders = request.env['sale.order'].sudo().search([
@@ -50,9 +52,14 @@ class PortalInventory(http.Controller):
 
         # Load updated inventory lines
         updated_inventory = inventory_model.search([('user_id', '=', user.id)])
+        
+        _logger.info("RENDERING INVENTORY LINES")
+        for inv in updated_inventory:
+            _logger.info("Line ID: %s | is_custom: %s | Product: %s | Custom Name: %s", inv.id, inv.is_custom, inv.product_id.name if inv.product_id else None, inv.custom_name)
 
         return request.render('user_inventory.portal_inventory_template', {
-            'inventory': updated_inventory
+            'inventory': updated_inventory,
+            'product_suggestions': product_suggestions,
         })
 
     @http.route(['/my/inventory/update'], type='http', auth='user', methods=['POST'], website=True, csrf=True)
@@ -107,3 +114,53 @@ class PortalInventory(http.Controller):
                 })
 
         return request.redirect(f'/my/orders/{order_id}')
+
+    @http.route(['/my/inventory/add_custom'], type='http', auth='user', methods=['POST'], website=True, csrf=True)
+    def add_custom_inventory(self, **post):
+        user = request.env.user
+        inventory_model = request.env['user.inventory.line'].sudo()
+
+        name = post.get('custom_product_name')
+        qty = int(post.get('custom_qty', 0))
+
+        if name and qty >= 0:
+            inventory_model.create({
+                'user_id': user.id,
+                'custom_name': name,
+                'is_custom': True,
+                'current_qty': qty,
+            })
+
+        return request.redirect('/my/inventory')
+
+    @http.route(['/my/inventory/add_existing'], type='http', auth='user', methods=['POST'], website=True, csrf=True)
+    def add_existing_product_to_inventory(self, **post):
+        user = request.env.user
+        search_name = post.get('product_search', '').strip()
+        product_model = request.env['product.product'].sudo()
+        inventory_model = request.env['user.inventory.line'].sudo()
+
+        if not search_name:
+            return request.redirect('/my/inventory')
+
+        # Try exact match first, fallback to ilike
+        product = product_model.search([
+            ('name', '=ilike', search_name),
+            ('type', '!=', 'service'),
+        ], limit=1)
+
+        if product:
+            existing_line = inventory_model.search([
+                ('user_id', '=', user.id),
+                ('product_id', '=', product.id)
+            ], limit=1)
+
+            if not existing_line:
+                inventory_model.create({
+                    'user_id': user.id,
+                    'product_id': product.id,
+                    'current_qty': 0,
+                    'total_ordered_qty': 0
+                })
+
+        return request.redirect('/my/inventory')

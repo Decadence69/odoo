@@ -4,10 +4,12 @@
     'category': 'Website',
     'author': 'Ivan Chen',
     'summary': 'Let users manage their inventory from the portal',
-    'depends': ['website_sale', 'portal'],
+    'depends': ['sale', 'website_sale', 'portal'],
     'data': [
         'views/portal_inventory_template.xml',
         'views/portal_order_inherit.xml',
+        'views/portal_my_orders_status.xml',
+        'views/portal_inventory_entry.xml',
     ],
     'installable': True,
 }
