@@ -1,0 +1,13 @@
+<odoo>
+  <template id="user_inventory_portal_entry" inherit_id="portal.portal_my_home">
+    <xpath expr="//div[@id='oe_structure_portal_my_home_1']" position="inside">
+      <t t-call="portal.portal_docs_entry">
+        <t t-set="icon" t-value="'/user_inventory/static/src/img/icon-inventory.svg'"/>
+        <t t-set="title">My Inventory</t>
+        <t t-set="text">View and manage your product inventory based on your orders.</t>
+        <t t-set="url" t-value="'/my/inventory'"/>
+        <t t-set="config_card" t-value="True"/>
+      </t>
+    </xpath>
+  </template>
+</odoo>

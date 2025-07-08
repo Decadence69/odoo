@@ -4,14 +4,67 @@
       <div class="container my-5">
         <h2 class="mb-4">My Inventory</h2>
 
+        <!-- Custom Add Existing Form -->
+        <div class="card mb-4">
+          <div class="card-body">
+            <h5 class="card-title">Add Product from Catalog</h5>
+            <form t-att-action="url_for('/my/inventory/add_existing')" method="post" class="mb-4">
+              <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+
+              <div class="row">
+                <div class="col-md-6 mb-2">
+                  <input name="product_search" list="product_list" class="form-control" placeholder="Search for a product..." required="required"/>
+                  <datalist id="product_list">
+                    <t t-foreach="product_options" t-as="product">
+                      <option t-att-value="product.display_name"/>
+                    </t>
+                  </datalist>
+                </div>
+                <div class="col-md-3 mb-2">
+                  <input type="number" name="custom_qty" class="form-control" placeholder="Quantity" min="0" required="required"/>
+                </div>
+                <div class="col-md-3 mb-2">
+                  <button type="submit" class="btn btn-primary w-100">Add Product</button>
+                </div>
+              </div>
+            </form>
+
+          </div>
+        </div>
+
+        <!-- Custom Add Custom Form -->
+        <form t-att-action="url_for('/my/inventory/add_custom')" method="post">
+          <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+          <button type="button" class="btn btn-success mb-3" data-bs-toggle="collapse" data-bs-target="#customInventoryForm">
+          + Add Custom Inventory Record
+          </button>
+          <div id="customInventoryForm" class="collapse mb-4">
+            <div class="row">
+              <div class="col-md-6 mb-2">
+                <input type="text" name="custom_product_name" class="form-control" placeholder="Product Name" required="required"/>
+              </div>
+              <div class="col-md-3 mb-2">
+                <input type="number" name="custom_qty" class="form-control" placeholder="Quantity" min="0" required="required"/>
+              </div>
+              <div class="col-md-3 mb-2">
+                <button type="submit" class="btn btn-primary w-100">Add Record</button>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <!-- Main Inventory Update Form -->
         <form t-att-action="url_for('/my/inventory/update')" method="post">
           <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
           <table class="table table-striped align-middle">
             <thead>
               <tr>
                 <th>Product</th>
                 <th>Total Ordered</th>
+                <th>Target Stock</th>
                 <th>Current Stock</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -19,21 +72,39 @@
                 <tr>
                   <td>
                     <div class="d-flex align-items-center gap-2">
-                      <img t-att-src="'/web/image/product.product/%s/image_128' % line.product_id.id"
-                           class="rounded me-2"
-                           style="width: 48px; height: 48px;" />
-                      <a t-attf-href="/shop/product/{{ line.product_id.id }}">
-                        <t t-esc="line.product_id.display_name"/>
-                      </a>
+                      <t t-if="line.is_custom">
+                        <span class="fw-bold">
+                          <t t-esc="line.custom_name"/>
+                        </span>
+                      </t>
+                      <t t-if="not line.is_custom">
+                        <img t-att-src="'/web/image/product.product/%s/image_128' % line.product_id.id" class="rounded me-2" style="width: 48px; height: 48px;" />
+                        <a t-attf-href="/shop/product/{{ line.product_id.id }}">
+                          <t t-esc="line.product_id.display_name"/>
+                        </a>
+                      </t>
                     </div>
                   </td>
-                  <td><t t-esc="line.total_ordered_qty"/></td>
                   <td>
-                    <input type="number"
-                      class="form-control"
-                      t-att-name="'qty_{}'.format(line.id)"
-                      t-att-value="str(line.current_qty or 0)"
-                      min="0"/>
+                    <t t-esc="line.total_ordered_qty if not line.is_custom else '–'"/>
+                  </td>
+                  <td>
+                    <input type="number" class="form-control" t-att-name="'target_{}'.format(line.id)" t-att-value="str(line.target_qty or 0)" min="0"/>
+                  </td>
+                  <td>
+                    <input type="number" class="form-control" t-att-name="'qty_{}'.format(line.id)" t-att-value="str(line.current_qty or 0)" min="0"/>
+                  </td>
+                  <td>
+                    <t t-if="not line.is_custom">
+                      <form t-attf-id="reorder-form-#{line.id}" action="/my/inventory/reorder" method="post" style="display: none;">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <input type="hidden" name="line_id" t-att-value="line.id"/>
+                      </form>
+                      <button type="button" class="btn btn-primary w-100" t-att-disabled="line.current_qty >= line.target_qty and 'disabled' or None" t-att-onclick="'reorderProduct(' + str(line.id) + ')'">
+                        Reorder
+                      </button>
+
+                    </t>
                   </td>
                 </tr>
               </t>
@@ -42,7 +113,29 @@
 
           <button type="submit" class="btn btn-primary mt-3">Save Inventory</button>
         </form>
+
       </div>
+      <div class="container">
+        <button onclick="sayHello()">Click Me</button>
+      </div>
+
+      <!-- Your custom script must go after all template logic -->
+      <script type="text/javascript">
+        function reorderProduct(lineId) {
+          odoo.jsonRpc("/my/inventory/reorder", "call", { line_id: lineId })
+            .then(function (result) {
+              if (result &amp;&amp; result.message) {
+                odoo.__DEBUG__.services['web.core'].bus.trigger('display_notification', {
+                  title: result.title || "Reorder",
+                  message: result.message,
+                  type: result.type || "success",
+                  sticky: result.sticky || false,
+                });
+              }
+            });
+        }
+      </script>
+
     </t>
   </template>
 </odoo>
