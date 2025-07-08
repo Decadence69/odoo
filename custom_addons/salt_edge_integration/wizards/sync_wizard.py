@@ -53,13 +53,3 @@ class SaltEdgeSyncWizard(models.TransientModel): #just a temporary form
             'url': link,
             'target': 'new',
         }
-    config = self.env['salt.edge.settings'].search([], limit=1)
-
-headers = {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'App-id': config.app_id,
-    'Secret': config.secret,
-    'Expires-at': '0',
-    'Client-User-Id': str(uuid.uuid4())
-}
