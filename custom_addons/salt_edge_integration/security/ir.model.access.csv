@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_settings,salt.edge.settings,model_salt_edge_settings,,1,1,1,1
+access_account,salt.edge.account,model_salt_edge_account,,1,1,1,1
+access_transaction,salt.edge.transaction,model_salt_edge_transaction,,1,1,1,1

@@ -1,0 +1,27 @@
+<odoo>
+    <record id="view_salt_edge_sync_wizard" model="ir.ui.view">
+        <field name="name">salt.edge.sync.wizard.form</field>
+        <field name="model">salt.edge.sync.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Sync Salt Edge Bank">
+                <group>
+                    <field name="country_code"/>
+                    <field name="provider_code"/>
+                </group>
+                <footer>
+                    <button string="Start Sync" type="object" name="action_sync" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_salt_edge_sync_wizard" model="ir.actions.act_window">
+        <field name="name">Sync Bank</field>
+        <field name="res_model">salt.edge.sync.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_salt_edge_sync" name="Start Sync" parent="menu_salt_edge_root" action="action_salt_edge_sync_wizard"/>
+</odoo>
