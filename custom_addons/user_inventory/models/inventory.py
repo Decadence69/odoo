@@ -10,6 +10,7 @@ class UserInventoryLine(models.Model):
     is_custom = fields.Boolean(string="Custom Entry", default=False)
     current_qty = fields.Integer(string="Current Stock", default=0)
     total_ordered_qty = fields.Integer(string="Total Ordered", default=0)
+    target_qty = fields.Integer(string="Target Stock", default=0)
 
     _sql_constraints = [
         ('user_product_unique', 'unique(user_id, product_id)', 'Each user can only track one entry per product.')

@@ -1,6 +1,7 @@
-from odoo import http
+from odoo import http, _
 from odoo.http import request
 import logging
+import re
 
 _logger = logging.getLogger(__name__)
 
@@ -10,8 +11,7 @@ class PortalInventory(http.Controller):
     def portal_inventory(self, **kw):
         user = request.env.user
         inventory_model = request.env['user.inventory.line'].sudo()
-        product_model = request.env['product.product'].sudo()
-        product_suggestions = product_model.search([('type', '!=', 'service')], limit=50)
+        product_options = request.env['product.product'].sudo().search([('sale_ok', '=', True)], limit=100)
 
         # Fetch all confirmed orders
         orders = request.env['sale.order'].sudo().search([
@@ -53,14 +53,15 @@ class PortalInventory(http.Controller):
         # Load updated inventory lines
         updated_inventory = inventory_model.search([('user_id', '=', user.id)])
         
-        _logger.info("RENDERING INVENTORY LINES")
-        for inv in updated_inventory:
-            _logger.info("Line ID: %s | is_custom: %s | Product: %s | Custom Name: %s", inv.id, inv.is_custom, inv.product_id.name if inv.product_id else None, inv.custom_name)
+        # _logger.info("RENDERING INVENTORY LINES")
+        # for inv in updated_inventory:
+        #     _logger.info("Line ID: %s | is_custom: %s | Product: %s | Custom Name: %s", inv.id, inv.is_custom, inv.product_id.name if inv.product_id else None, inv.custom_name)
 
         return request.render('user_inventory.portal_inventory_template', {
             'inventory': updated_inventory,
-            'product_suggestions': product_suggestions,
+            'product_options': product_options,
         })
+
 
     @http.route(['/my/inventory/update'], type='http', auth='user', methods=['POST'], website=True, csrf=True)
     def portal_inventory_update(self, **post):
@@ -68,15 +69,18 @@ class PortalInventory(http.Controller):
         inventory_model = request.env['user.inventory.line'].sudo()
 
         for key, val in post.items():
-            if key.startswith("qty_"):
+            if key.startswith("qty_") or key.startswith("target_"):
                 try:
-                    line_id = int(key.replace("qty_", ""))
-                    qty = int(val)
+                    line_id = int(key.split("_")[1])
                     line = inventory_model.browse(line_id)
                     if line and line.user_id.id == user.id:
-                        line.current_qty = qty
+                        if key.startswith("qty_"):
+                            line.current_qty = int(val)
+                        elif key.startswith("target_"):
+                            line.target_qty = int(val)
                 except Exception as e:
-                    _logger.warning(f"Error updating inventory line: {e}")
+                    _logger.warning(f"Error updating inventory field {key}: {e}")
+
 
         return request.redirect('/my/inventory')
     
@@ -134,33 +138,140 @@ class PortalInventory(http.Controller):
         return request.redirect('/my/inventory')
 
     @http.route(['/my/inventory/add_existing'], type='http', auth='user', methods=['POST'], website=True, csrf=True)
-    def add_existing_product_to_inventory(self, **post):
+    def add_existing_inventory(self, **post):
         user = request.env.user
-        search_name = post.get('product_search', '').strip()
-        product_model = request.env['product.product'].sudo()
-        inventory_model = request.env['user.inventory.line'].sudo()
+        product_name = post.get('product_search', '').strip()
+        qty = int(post.get('custom_qty', 0))
 
-        if not search_name:
-            return request.redirect('/my/inventory')
+        _logger.info("ADDING EXISTING PRODUCT: %s | Qty: %s", product_name, qty)
 
-        # Try exact match first, fallback to ilike
-        product = product_model.search([
-            ('name', '=ilike', search_name),
-            ('type', '!=', 'service'),
+        # Extract default_code from string like "[CODE] Name"
+        match = re.match(r'\[(.*?)\]', product_name)
+        code = match.group(1) if match else product_name.strip()
+
+        product = request.env['product.product'].sudo().search([
+            ('default_code', '=', code)
         ], limit=1)
 
-        if product:
+        if not product:
+            _logger.warning("Product not found with code: %s", code)
+        else:
+            inventory_model = request.env['user.inventory.line'].sudo()
             existing_line = inventory_model.search([
                 ('user_id', '=', user.id),
                 ('product_id', '=', product.id)
             ], limit=1)
 
-            if not existing_line:
+            if existing_line:
+                _logger.info("Existing line found. Updating qty...")
+                existing_line.current_qty += qty
+            else:
+                _logger.info("Creating new inventory line...")
                 inventory_model.create({
                     'user_id': user.id,
                     'product_id': product.id,
-                    'current_qty': 0,
-                    'total_ordered_qty': 0
+                    'current_qty': qty,
+                    'total_ordered_qty': 0,
                 })
 
         return request.redirect('/my/inventory')
+    
+    @http.route(['/my/inventory/reorder'], type='http', auth='user', methods=['POST'], website=True, csrf=True)
+    def reorder_from_inventory(self, **post):
+        # Log start
+        _logger.info("REORDER endpoint hit: %s", post)
+
+        line_id = int(post.get('line_id', 0))
+        inventory_line = request.env['user.inventory.line'].sudo().browse(line_id)
+
+        if not inventory_line or inventory_line.is_custom:
+            _logger.warning("Reorder skipped: invalid or custom line.")
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Reorder Skipped'),
+                    'message': _('Invalid or custom item cannot be reordered.'),
+                    'type': 'warning',
+                    'sticky': False,
+                }
+            }
+
+        # Step 1: Extract SKU (e.g., [CONS_123])
+        display_name = inventory_line.product_id.display_name or ''
+        match = re.search(r'\[(.*?)\]', display_name)
+        if not match:
+            _logger.warning("Could not extract SKU from product name: %s", display_name)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('SKU Not Found'),
+                    'message': _('Could not extract SKU from product name.'),
+                    'type': 'danger',
+                    'sticky': False,
+                }
+            }
+
+        sku = match.group(1)
+        _logger.info("Extracted SKU: %s", sku)
+
+        # Step 2: Lookup product using default_code
+        product = request.env['product.product'].sudo().search([
+            ('default_code', '=', sku)
+        ], limit=1)
+
+        if not product:
+            _logger.warning("No matching product for SKU: %s", sku)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Product Not Found'),
+                    'message': _('No product matches SKU %s.') % sku,
+                    'type': 'danger',
+                    'sticky': False,
+                }
+            }
+
+        # Step 3: Compute reorder qty
+        qty_to_add = inventory_line.target_qty - inventory_line.current_qty
+        if qty_to_add <= 0:
+            _logger.info("No reorder needed for line %s", line_id)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('No Reorder Needed'),
+                    'message': _('Stock level already meets or exceeds target.'),
+                    'type': 'info',
+                    'sticky': False,
+                }
+            }
+
+        # Step 4: Add to cart
+        order = request.website.sale_get_order(force_create=True)
+        order_line = request.env['sale.order.line'].sudo().search([
+            ('order_id', '=', order.id),
+            ('product_id', '=', product.id)
+        ], limit=1)
+
+        if order_line:
+            order_line.product_uom_qty += qty_to_add
+            _logger.info("Updated existing order line for product: %s", product.name)
+        else:
+            request.website.sale_get_order(force_create=True)._cart_update(
+                product_id=product.id,
+                add_qty=qty_to_add,
+                set_qty=False
+            )
+            _logger.info("Created new order line for product: %s", product.name)
+
+        
+        return {
+            'title': _('Added to Cart'),
+            'message': _('Added %s x %s to your cart.') % (qty_to_add, product.name),
+            'type': 'success',
+            'sticky': False
+        }
+

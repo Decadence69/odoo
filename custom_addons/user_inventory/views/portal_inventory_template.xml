@@ -8,23 +8,27 @@
         <div class="card mb-4">
           <div class="card-body">
             <h5 class="card-title">Add Product from Catalog</h5>
-            <form t-att-action="url_for('/my/inventory/add_existing')" method="post">
-              <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+            <form t-att-action="url_for('/my/inventory/add_existing')" method="post" class="mb-4">
+              <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
 
-              <div class="row align-items-center">
-                <div class="col-md-9">
-                  <input type="text" name="product_search" class="form-control" placeholder="Search for a product name" list="product_list" required="required" />
+              <div class="row">
+                <div class="col-md-6 mb-2">
+                  <input name="product_search" list="product_list" class="form-control" placeholder="Search for a product..." required="required"/>
                   <datalist id="product_list">
-                    <t t-foreach="product_suggestions" t-as="prod">
-                      <option t-att-value="prod.display_name"/>
+                    <t t-foreach="product_options" t-as="product">
+                      <option t-att-value="product.display_name"/>
                     </t>
                   </datalist>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 mb-2">
+                  <input type="number" name="custom_qty" class="form-control" placeholder="Quantity" min="0" required="required"/>
+                </div>
+                <div class="col-md-3 mb-2">
                   <button type="submit" class="btn btn-primary w-100">Add Product</button>
                 </div>
               </div>
             </form>
+
           </div>
         </div>
 
@@ -58,7 +62,9 @@
               <tr>
                 <th>Product</th>
                 <th>Total Ordered</th>
+                <th>Target Stock</th>
                 <th>Current Stock</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -83,7 +89,22 @@
                     <t t-esc="line.total_ordered_qty if not line.is_custom else '–'"/>
                   </td>
                   <td>
+                    <input type="number" class="form-control" t-att-name="'target_{}'.format(line.id)" t-att-value="str(line.target_qty or 0)" min="0"/>
+                  </td>
+                  <td>
                     <input type="number" class="form-control" t-att-name="'qty_{}'.format(line.id)" t-att-value="str(line.current_qty or 0)" min="0"/>
+                  </td>
+                  <td>
+                    <t t-if="not line.is_custom">
+                      <form t-attf-id="reorder-form-#{line.id}" action="/my/inventory/reorder" method="post" style="display: none;">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <input type="hidden" name="line_id" t-att-value="line.id"/>
+                      </form>
+                      <button type="button" class="btn btn-primary w-100" t-att-disabled="line.current_qty >= line.target_qty and 'disabled' or None" t-att-onclick="'reorderProduct(' + str(line.id) + ')'">
+                        Reorder
+                      </button>
+
+                    </t>
                   </td>
                 </tr>
               </t>
@@ -94,6 +115,27 @@
         </form>
 
       </div>
+      <div class="container">
+        <button onclick="sayHello()">Click Me</button>
+      </div>
+
+      <!-- Your custom script must go after all template logic -->
+      <script type="text/javascript">
+        function reorderProduct(lineId) {
+          odoo.jsonRpc("/my/inventory/reorder", "call", { line_id: lineId })
+            .then(function (result) {
+              if (result &amp;&amp; result.message) {
+                odoo.__DEBUG__.services['web.core'].bus.trigger('display_notification', {
+                  title: result.title || "Reorder",
+                  message: result.message,
+                  type: result.type || "success",
+                  sticky: result.sticky || false,
+                });
+              }
+            });
+        }
+      </script>
+
     </t>
   </template>
 </odoo>
