@@ -178,7 +178,6 @@ class PortalInventory(http.Controller):
     
     @http.route(['/my/inventory/reorder'], type='http', auth='user', methods=['POST'], website=True, csrf=True)
     def reorder_from_inventory(self, **post):
-        # Log start
         _logger.info("REORDER endpoint hit: %s", post)
 
         line_id = int(post.get('line_id', 0))
@@ -186,32 +185,14 @@ class PortalInventory(http.Controller):
 
         if not inventory_line or inventory_line.is_custom:
             _logger.warning("Reorder skipped: invalid or custom line.")
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': _('Reorder Skipped'),
-                    'message': _('Invalid or custom item cannot be reordered.'),
-                    'type': 'warning',
-                    'sticky': False,
-                }
-            }
+            return request.redirect('/shop/cart')
 
         # Step 1: Extract SKU (e.g., [CONS_123])
         display_name = inventory_line.product_id.display_name or ''
         match = re.search(r'\[(.*?)\]', display_name)
         if not match:
             _logger.warning("Could not extract SKU from product name: %s", display_name)
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': _('SKU Not Found'),
-                    'message': _('Could not extract SKU from product name.'),
-                    'type': 'danger',
-                    'sticky': False,
-                }
-            }
+            return request.redirect('/shop/cart')
 
         sku = match.group(1)
         _logger.info("Extracted SKU: %s", sku)
@@ -223,31 +204,13 @@ class PortalInventory(http.Controller):
 
         if not product:
             _logger.warning("No matching product for SKU: %s", sku)
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': _('Product Not Found'),
-                    'message': _('No product matches SKU %s.') % sku,
-                    'type': 'danger',
-                    'sticky': False,
-                }
-            }
+            return request.redirect('/shop/cart')
 
         # Step 3: Compute reorder qty
         qty_to_add = inventory_line.target_qty - inventory_line.current_qty
         if qty_to_add <= 0:
             _logger.info("No reorder needed for line %s", line_id)
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': _('No Reorder Needed'),
-                    'message': _('Stock level already meets or exceeds target.'),
-                    'type': 'info',
-                    'sticky': False,
-                }
-            }
+            return request.redirect('/shop/cart')
 
         # Step 4: Add to cart
         order = request.website.sale_get_order(force_create=True)
@@ -267,11 +230,5 @@ class PortalInventory(http.Controller):
             )
             _logger.info("Created new order line for product: %s", product.name)
 
-        
-        return {
-            'title': _('Added to Cart'),
-            'message': _('Added %s x %s to your cart.') % (qty_to_add, product.name),
-            'type': 'success',
-            'sticky': False
-        }
+        return request.redirect('/my/inventory')
 
