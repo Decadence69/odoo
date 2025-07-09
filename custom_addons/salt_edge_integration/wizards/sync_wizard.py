@@ -7,7 +7,7 @@ class SaltEdgeSyncWizard(models.TransientModel): #just a temporary form
     _description = 'Salt Edge Sync Wizard'
 
     country_code = fields.Char(default='GB')
-    provider_code = fields.Char(required=True, help="fakebank_simple_xf") #salt edge code for bank eg: fakebank_simple_xf
+    provider_code = fields.Char(required=True) #salt edge code for bank eg: fakebank_simple_xf
 
     def _get_headers(self):
         config = self.env['salt.edge.settings'].search([], limit=1)
