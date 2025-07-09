@@ -1,10 +1,9 @@
-# models/payment_provider.py
-from odoo import fields, models
+from odoo import models
 
-class PaymentProvider(models.Model):
+class PaymentProviderSaltEdge(models.Model):
     _inherit = 'payment.provider'
-    
-    code = fields.Selection(
-        selection_add=[('salt_edge', 'Salt Edge')],
-        ondelete={'salt_edge': 'cascade'}
-    )
+
+    def _get_feature_support(self):
+        res = super()._get_feature_support()
+        res['tokenize'].append('salt_edge')
+        return res
