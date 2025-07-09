@@ -7,7 +7,7 @@
         'security/ir.model.access.csv',
         'views/salt_edge_views.xml',
         'views/sync_wizard_view.xml',
-        'data/payment_provider.xml',
+        'data/payment_provider.xml'
     ],
     'installable': True,
     'application': True,
