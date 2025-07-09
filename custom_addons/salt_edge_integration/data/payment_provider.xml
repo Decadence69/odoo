@@ -3,6 +3,5 @@
     <field name="name">Salt Edge</field>
     <field name="code">salt_edge</field>
     <field name="state">enabled</field>
-    <field name="display_as">Salt Edge</field>
   </record>
 </odoo>
