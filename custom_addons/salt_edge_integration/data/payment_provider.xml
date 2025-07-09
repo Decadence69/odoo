@@ -2,7 +2,6 @@
   <record id="payment_provider_salt_edge" model="payment.provider">
     <field name="name">Salt Edge</field>
     <field name="code">salt_edge</field>
-    <field name="module">salt_edge_integration</field>
     <field name="state">enabled</field>
     <field name="payment_flow">form</field>
     <field name="display_as">Salt Edge</field>
