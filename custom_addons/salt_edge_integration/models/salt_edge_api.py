@@ -16,7 +16,8 @@ class SaltEdgeAPI(models.Model):
         headers = {
             'App-id': app_id,
             'Secret': secret,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
         }
 
         # Sample call to Salt Edge API (adjust URL and data as needed)
