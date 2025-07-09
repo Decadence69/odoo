@@ -1,20 +1,27 @@
 <odoo>
     <!-- Form View for Salt Edge Settings -->
+    <!-- Inject into General Settings -->
     <record id="view_salt_edge_settings_form" model="ir.ui.view">
         <field name="name">salt.edge.settings.form</field>
-        <field name="model">salt.edge.settings</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.view_res_config_settings"/>
         <field name="arch" type="xml">
-            <form string="Salt Edge Configuration">
-                <sheet>
-                    <group>
-                        <field name="app_id"/>
-                        <field name="secret"/>
-                    </group>
-                </sheet>
-            </form>
+            <xpath expr="//div[@id='settings']" position="inside">
+                <div class="app_settings_block" data-string="Salt Edge" string="Salt Edge">
+                    <h2>Salt Edge Configuration</h2>
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <field name="app_id"/>
+                                <field name="secret"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
         </field>
     </record>
-
+    
     <!-- Action to open the settings form -->
     <record id="action_salt_edge_settings" model="ir.actions.act_window">
         <field name="name">Salt Edge Settings</field>
