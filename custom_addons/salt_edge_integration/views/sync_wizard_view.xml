@@ -4,14 +4,17 @@
         <field name="model">salt.edge.sync.wizard</field>
         <field name="arch" type="xml">
             <form string="Sync Salt Edge Bank">
-                <group>
-                    <field name="country_code"/>
-                    <field name="provider_code"/>
-                </group>
-                <footer>
-                    <button string="Start Sync" type="object" name="action_sync" class="btn-primary"/>
-                    <button string="Cancel" class="btn-secondary" special="cancel"/>
-                </footer>
+                <sheet>
+                    <group>
+                        <field name="country_code"/>
+                        <field name="provider_code"/>
+                        <label string="Try provider code: fakebank_simple_xf" />
+                    </group>
+                    <footer>
+                        <button string="Start Sync" type="object" name="action_sync" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </sheet>
             </form>
         </field>
     </record>
