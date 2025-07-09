@@ -1,17 +1,4 @@
 <odoo>
-    <!-- Tree View -->
-    <record id="view_salt_edge_settings_tree" model="ir.ui.view">
-        <field name="name">salt.edge.settings.tree</field>
-        <field name="model">salt.edge.settings</field>
-        <field name="arch" type="xml">
-            <tree>
-                <field name="name"/>
-                <field name="app_id"/>
-            </tree>
-        </field>
-    </record>
-
-    <!-- Form View -->
     <record id="view_salt_edge_settings_form" model="ir.ui.view">
         <field name="name">salt.edge.settings.form</field>
         <field name="model">salt.edge.settings</field>
@@ -27,14 +14,12 @@
         </field>
     </record>
 
-    <!-- Action -->
     <record id="action_salt_edge_settings" model="ir.actions.act_window">
         <field name="name">Salt Edge Settings</field>
         <field name="res_model">salt.edge.settings</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">form</field>
     </record>
 
-    <!-- Menu -->
     <menuitem id="menu_salt_edge_root" name="Salt Edge"/>
     <menuitem id="menu_salt_edge_config" name="Configuration" parent="menu_salt_edge_root" action="action_salt_edge_settings"/>
 </odoo>
