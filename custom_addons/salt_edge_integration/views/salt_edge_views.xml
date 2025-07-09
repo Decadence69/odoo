@@ -1,4 +1,5 @@
 <odoo>
+    <!-- Form View for Salt Edge Settings -->
     <record id="view_salt_edge_settings_form" model="ir.ui.view">
         <field name="name">salt.edge.settings.form</field>
         <field name="model">salt.edge.settings</field>
@@ -14,12 +15,23 @@
         </field>
     </record>
 
+    <!-- Action to open the settings form -->
     <record id="action_salt_edge_settings" model="ir.actions.act_window">
         <field name="name">Salt Edge Settings</field>
         <field name="res_model">salt.edge.settings</field>
         <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <!-- Optional: restrict to one record if it's a config singleton -->
+        <field name="view_id" ref="view_salt_edge_settings_form"/>
     </record>
 
-    <menuitem id="menu_salt_edge_root" name="Salt Edge"/>
-    <menuitem id="menu_salt_edge_config" name="Configuration" parent="menu_salt_edge_root" action="action_salt_edge_settings"/>
+    <!-- Main Menu -->
+    <menuitem id="menu_salt_edge_root" name="Salt Edge" sequence="100"/>
+
+    <!-- Submenu + Action -->
+    <menuitem id="menu_salt_edge_config"
+              name="Configuration"
+              parent="menu_salt_edge_root"
+              action="action_salt_edge_settings"
+              sequence="10"/>
 </odoo>
