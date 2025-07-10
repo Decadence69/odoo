@@ -1,0 +1,28 @@
+<odoo>
+    <record id="view_salt_edge_demo_form" model="ir.ui.view">
+        <field name="name">salt.edge.demo.form</field>
+        <field name="model">salt.edge.demo</field>
+        <field name="arch" type="xml">
+            <form string="Salt Edge Demo">
+                <group>
+                    <field name="name"/>
+                </group>
+                <footer>
+                    <button name="action_connect_sandbox" type="object"
+                            class="btn-primary" string="Simulate Connection"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_salt_edge_demo" model="ir.actions.act_window">
+        <field name="name">Salt Edge Demo</field>
+        <field name="res_model">salt.edge.demo</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_salt_edge_demo_root" name="Salt Edge Demo"/>
+    <menuitem id="menu_salt_edge_demo_item" name="Demo Connection"
+              parent="menu_salt_edge_demo_root" action="action_salt_edge_demo"/>
+</odoo>
