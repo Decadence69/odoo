@@ -1,3 +1,4 @@
+from odoo import models, fields
 class PaymentAcquirerSaltEdge(models.Model):
     _inherit = 'payment_acquirer'
 
