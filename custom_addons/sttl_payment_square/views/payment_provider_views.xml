@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payment_provider_form_square" model="ir.ui.view">
+        <field name="name">Square Provider Form</field>
+        <field name="model">payment.provider</field>
+        <field name="inherit_id" ref="payment.payment_provider_form"/>
+        <field name="arch" type="xml">
+            <group name="provider_credentials" position='inside'>
+                <group name="square_credentials" invisible="code != 'square'">
+                    <field name="square_access_token"
+                           required="code == 'square' and state != 'disabled'"
+                           invisible="state in ['disabled']"
+                           />
+                    <field name="square_location_id" 
+                           required="code == 'square' and state != 'disabled'"
+                           invisible="state in ['disabled']"
+                           />
+                    <button string="Test Credentials"
+                        name="action_test_square_credentials"
+                        type="object"
+                        class="btn-primary"
+                        invisible="code != 'square' or state in ['disabled']" />
+                </group>
+            </group>
+        </field>
+    </record>
+</odoo>
