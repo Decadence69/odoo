@@ -1,7 +1,0 @@
-<odoo>
-  <record id="payment_method_salt_edge" model="account.payment.method">
-    <field name="name">Salt Edge</field>
-    <field name="payment_type">inbound</field>
-    <field name="code">salt_edge</field>
-  </record>
-</odoo>
