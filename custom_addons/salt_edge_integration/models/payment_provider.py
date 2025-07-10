@@ -10,5 +10,5 @@ class PaymentProviderSaltEdge(models.Model):
 
     def _get_supported_payment_method_codes(self):
         if self.code == 'salt_edge':
-            return ['salt_edge']  # Must match the code in payment_method.xml
+            return ['salt_edge']
         return super()._get_supported_payment_method_codes()
