@@ -1,5 +1,5 @@
 <odoo>
-  <record id="payment_acquirer_salt_edge" model="payment_acquirer">
+  <record id="payment_acquirer_salt_edge" model="payment.acquirer">
     <field name="name">Salt Edge</field>
     <field name="provider_id" ref="salt_edge_integration.payment_provider_salt_edge"/>
     <field name="website_published">True</field>
