@@ -2,6 +2,7 @@ from odoo import http, _
 from odoo.http import request
 import logging
 import re
+from odoo import fields
 
 _logger = logging.getLogger(__name__)
 
@@ -52,15 +53,21 @@ class PortalInventory(http.Controller):
 
         # Load updated inventory lines
         updated_inventory = inventory_model.search([('user_id', '=', user.id)])
-        
+
         # _logger.info("RENDERING INVENTORY LINES")
         # for inv in updated_inventory:
         #     _logger.info("Line ID: %s | is_custom: %s | Product: %s | Custom Name: %s", inv.id, inv.is_custom, inv.product_id.name if inv.product_id else None, inv.custom_name)
-
+        
+        needs_reorder = bool(
+            updated_inventory
+            .filtered(lambda l: not l.is_custom and l.current_qty < (l.target_qty or 0))
+        )
         return request.render('user_inventory.portal_inventory_template', {
-            'inventory': updated_inventory,
+            'inventory':      updated_inventory,
             'product_options': product_options,
+            'needs_reorder':  needs_reorder,
         })
+
 
 
     @http.route(['/my/inventory/update'], type='http', auth='user', methods=['POST'], website=True, csrf=True)
@@ -231,4 +238,39 @@ class PortalInventory(http.Controller):
             _logger.info("Created new order line for product: %s", product.name)
 
         return request.redirect('/my/inventory')
+    
+    @http.route(['/my/inventory/reorder_all'], type='http', auth='user', methods=['POST'], website=True, csrf=True)
+    def reorder_all(self, **post):
+        user = request.env.user
+        InventoryLine = request.env['user.inventory.line'].sudo()
+
+        # 1) fetch all non-custom lines for this user
+        all_lines = InventoryLine.search([
+            ('user_id',   '=', user.id),
+            ('is_custom', '=', False),
+        ])
+        # 2) filter those where current < target
+        to_reorder = all_lines.filtered(lambda l: l.current_qty < (l.target_qty or 0))
+
+        # 3) get or create the website order
+        order = request.website.sale_get_order(force_create=True)
+
+        # 4) loop & top-up each line
+        for line in to_reorder:
+            qty_to_add = line.target_qty - line.current_qty
+            if qty_to_add <= 0:
+                continue
+
+            # if already in cart, bump qty; else create new
+            existing = request.env['sale.order.line'].sudo().search([
+                ('order_id',   '=', order.id),
+                ('product_id', '=', line.product_id.id),
+            ], limit=1)
+            if existing:
+                existing.product_uom_qty += qty_to_add
+            else:
+                order._cart_update(product_id=line.product_id.id, add_qty=qty_to_add)
+
+        return request.redirect('/shop/cart')
+
 

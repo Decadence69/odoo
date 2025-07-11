@@ -54,7 +54,7 @@
         </form>
 
         <!-- Main Inventory Update Form -->
-        <form t-att-action="url_for('/my/inventory/update')" method="post">
+        <form id="form_update" t-att-action="url_for('/my/inventory/update')" method="post">
           <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 
           <table class="table table-striped align-middle">
@@ -100,7 +100,7 @@
                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                         <input type="hidden" name="line_id" t-att-value="line.id"/>
                       </form>
-                      <button type="button" class="btn btn-primary w-100" t-att-disabled="line.current_qty >= line.target_qty and 'disabled' or None" t-attf-onclick="document.getElementById('reorder-form-{{ line.id }}').submit();">
+                      <button type="button" class="btn btn-primary w-100 js-reorder-btn" style="min-width: 10rem" t-att-disabled="line.current_qty >= line.target_qty and 'disabled' or None" t-attf-data-line-id="{{ line.id }}">
                         Reorder
                       </button>
                     </t>
@@ -109,10 +109,82 @@
               </t>
             </tbody>
           </table>
+          <div class="d-flex align-items-center gap-2 mt-3">
+            <button type="submit" 
+                    form="form_update"
+                    class="btn btn-primary">
+              Save Inventory
+            </button>
 
-          <button type="submit" class="btn btn-primary mt-3">Save Inventory</button>
+            <form t-att-action="url_for('/my/inventory/reorder_all')"
+                  method="post"
+                  class="m-0">
+              <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+              <button type="submit"
+                      class="btn btn-warning js-reorder-all-btn"
+                      t-att-disabled="not needs_reorder and 'disabled' or None">
+                Reorder All
+              </button>
+            </form>
+          </div>
+
         </form>
       </div>
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('.js-reorder-btn').forEach(function(btn) {
+            btn.addEventListener('click', function (ev) {
+              ev.preventDefault();
+
+              var lineId = btn.getAttribute('data-line-id');
+              var form   = document.getElementById('reorder-form-' + lineId);
+              var token  = form.querySelector('[name="csrf_token"]').value;
+
+              // 1) Disable &amp; show spinner
+              btn.disabled = true;
+              btn.innerHTML = 
+                '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ' +
+                'Reordering…';
+
+              // 2) AJAX POST
+              fetch(form.action, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'X-CSRFToken': token,
+                },
+                body: new URLSearchParams(new FormData(form))
+              })
+              .then(function(response) {
+                if (!response.ok) { throw new Error('Network error'); }
+                return response.text();
+              })
+              .then(function() {
+                // 3) Swap in the checkmark
+                btn.innerHTML = '✔ Added to cart';
+              })
+              .catch(function() {
+                btn.innerHTML = '⚠️ Failed';
+                btn.disabled = false;
+              });
+            });
+          });
+          var allBtn = document.querySelector('.js-reorder-all-btn');
+          if (allBtn) {
+            allBtn.addEventListener('click', function(ev) {
+              ev.preventDefault();
+              // disable &amp; show spinner
+              this.disabled = true;
+              this.innerHTML = 
+                '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ' +
+                'Reordering…';
+              // submit the form normally
+              this.closest('form').submit();
+            });
+          }
+        });
+      </script>
     </t>
   </template>
 </odoo>
