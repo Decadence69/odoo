@@ -124,7 +124,7 @@ class PortalInventory(http.Controller):
                     'current_qty': ordered_qty,
                 })
 
-        return request.redirect(f'/my/orders/{order_id}')
+        return request.redirect(f'/my/inventory')
 
     @http.route(['/my/inventory/add_custom'], type='http', auth='user', methods=['POST'], website=True, csrf=True)
     def add_custom_inventory(self, **post):

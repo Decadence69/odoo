@@ -1,17 +1,28 @@
 <odoo>
     <data>
+        <!-- Replace your existing form view record with this more specific one -->
         <record id="view_sale_order_form_inherit_myr" model="ir.ui.view">
             <field name="name">sale.order.form.inherit.myr</field>
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
-
-                <!-- Safer: Inject into the first group inside the first page -->
-                <xpath expr="//sheet//group" position="inside">
+                <!-- Add the fields right after the partner_id field for easy visibility -->
+                <xpath expr="//field[@name='partner_id']" position="after">
                     <field name="actual_foreign_amount"/>
-                    <field name="amount_in_myr"/>
+                    <field name="amount_in_myr" string="Amount in MYR"/>
                 </xpath>
+            </field>
+        </record>
 
+        <record id="view_sale_order_tree_inherit_myr" model="ir.ui.view">
+            <field name="name">sale.order.tree.inherit.myr</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.sale_order_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='amount_total']" position="after">
+                    <field name="myr_currency_id" column_invisible="True"/>
+                    <field name="amount_in_myr" string="Amount in MYR" widget="monetary" options="{'currency_field': 'myr_currency_id'}" decoration-bf="1" optional="show"/>
+                </xpath>
             </field>
         </record>
     </data>

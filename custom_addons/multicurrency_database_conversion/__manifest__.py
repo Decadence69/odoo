@@ -7,7 +7,6 @@
     'depends': ['sale_management', 'account'],
     'data': [
         'views/sale_order_views.xml',
-        # add security file if you have custom access rights
     ],
     'installable': True,
     'application': False,
