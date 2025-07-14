@@ -42,14 +42,6 @@ class PortalInventory(http.Controller):
                 inventory_line.write({
                     'total_ordered_qty': total_ordered
                 })
-            else:
-                inventory_model.create({
-                    'user_id': user.id,
-                    'product_id': pid,
-                    'current_qty': 0,  # start at 0
-                    'total_ordered_qty': total_ordered
-                })
-
 
         # Load updated inventory lines
         updated_inventory = inventory_model.search([('user_id', '=', user.id)])
@@ -273,4 +265,29 @@ class PortalInventory(http.Controller):
 
         return request.redirect('/shop/cart')
 
+
+    @http.route(['/my/inventory/delete'], type='http', auth='user', methods=['POST'], website=True, csrf=True)
+    def delete_inventory_line(self, **post):
+        """Delete an inventory line"""
+        user = request.env.user
+        line_id = int(post.get('line_id', 0))
+        
+        if not line_id:
+            _logger.warning("No line_id provided for deletion")
+            return request.redirect('/my/inventory')
+        
+        inventory_line = request.env['user.inventory.line'].sudo().browse(line_id)
+        
+        # Security check: ensure the line belongs to the current user
+        if not inventory_line or inventory_line.user_id.id != user.id:
+            _logger.warning("Unauthorized delete attempt for line %s by user %s", line_id, user.id)
+            return request.redirect('/my/inventory')
+        
+        try:
+            inventory_line.unlink()
+            _logger.info("Successfully deleted inventory line %s for user %s", line_id, user.id)
+        except Exception as e:
+            _logger.error("Error deleting inventory line %s: %s", line_id, e)
+        
+        return request.redirect('/my/inventory')
 

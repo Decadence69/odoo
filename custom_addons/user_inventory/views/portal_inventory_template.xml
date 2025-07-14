@@ -19,17 +19,80 @@
         .js-reorder-btn,
         .js-reorder-all-btn { min-width: 10rem; }
 
-        /* mobile: full width */
+        /* flex-wrap header for desktop + mobile */
+        .header-buttons {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+        }
+
+        /* group the two “add” buttons */
+        .toggle-group {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+
+        /* ensure the edit button matches your toggle-btn behaviour on mobile */
         @media (max-width: 767.98px) {
           .toggle-btn {
+            width: 100% !important;    
+          }
+          .edit-btn {
             width: 100% !important;
           }
         }
+
         /* desktop: custom width */
         @media (min-width: 768px) {
           .toggle-btn {
             width: 180px;  /* ← adjust this value as needed */
           }
+        }
+
+        /* Edit mode styles */
+        .edit-mode .inventory-table tbody tr {
+          background-color: #fff3cd;
+          border: 1px solid #ffeaa7;
+        }
+        .edit-mode .inventory-table input[type="number"] {
+          pointer-events: none;
+          background-color: #f8f9fa;
+        }
+        /* Override Bootstrap responsive classes for edit column */
+        .edit-column {
+          display: none !important;
+        }
+        .edit-mode .edit-column {
+          display: table-cell !important;
+        }
+        .delete-btn {
+          color: #dc3545;
+          background: none;
+          border: none;
+          font-size: 1.2em;
+          cursor: pointer;
+          padding: 0;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          transition: background-color 0.2s;
+        }
+        .delete-btn:hover {
+          background-color: #f8d7da;
+        }
+        .delete-btn:active {
+          background-color: #f5c6cb;
+        }
+        .edit-actions {
+          margin-top: 1rem;
+          padding-top: 1rem;
+          border-top: 1px solid #dee2e6;
         }
       </style>
 
@@ -37,26 +100,34 @@
         <!-- Accordion wrapper -->
         <div id="inventoryAccordion">
           <!-- Catalog toggle -->
-          <button
-            type="button"
-            class="btn btn-success mb-3 toggle-btn"
-            data-bs-toggle="collapse"
-            data-bs-target="#catalogInventoryForm"
-            aria-expanded="false"
-            aria-controls="catalogInventoryForm">
-            + Add Product from Catalog
-          </button>
+          <!-- HEADER BUTTONS -->
+          <div class="header-buttons">
+            <!-- left side: the two toggles -->
+            <div class="toggle-group">
+              <button
+                type="button"
+                class="btn btn-success mb-3 toggle-btn"
+                data-bs-toggle="collapse"
+                data-bs-target="#catalogInventoryForm">
+                + Official Product
+              </button>
+              <button
+                type="button"
+                class="btn btn-success mb-3 toggle-btn"
+                data-bs-toggle="collapse"
+                data-bs-target="#customInventoryForm">
+                + Custom Product
+              </button>
+            </div>
+            <!-- right side: the edit button -->
+            <button
+              type="button"
+              id="editToggleBtn"
+              class="btn btn-outline-dark mb-3 edit-btn">
+              <i class="fa fa-edit"></i> Edit
+            </button>
+          </div>
 
-          <!-- Custom toggle -->
-          <button
-            type="button"
-            class="btn btn-success mb-3 toggle-btn"
-            data-bs-toggle="collapse"
-            data-bs-target="#customInventoryForm"
-            aria-expanded="false"
-            aria-controls="customInventoryForm">
-            + Add Custom Product
-          </button>
 
           <!-- Catalog form (collapsible) -->
           <div
@@ -138,149 +209,248 @@
           </div>
         </div>
 
-
         <!-- Inventory table + actions -->
-        <form id="form_update" method="post" t-att-action="url_for('/my/inventory/update')">
-          <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-          <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-
-          <table class="table table-striped align-middle inventory-table">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th class="d-none d-md-table-cell">Total Ordered</th>
-                <th class="d-none d-md-table-cell">Target Stock</th>
-                <th class="d-none d-md-table-cell">Current Stock</th>
-                <th class="d-none d-md-table-cell">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <t t-foreach="inventory" t-as="line">
-                <!-- main row -->
-                <tr>
-                  <!-- product -->
-                  <td>
-                    <div class="d-flex align-items-center gap-2">
-                      <!-- only on mobile -->
-                      <span class="toggle-collapse collapsed d-md-none" data-bs-toggle="collapse" t-att-data-bs-target="'#inv-' + str(line.id)">
-                        <i class="fa fa-chevron-down" aria-hidden="true"/>
-                      </span>
-                      <!-- then your image + link as before -->
-                      <t t-if="not line.is_custom">
-                        <img t-att-src="'/web/image/product.product/%s/image_128' % line.product_id.id" class="rounded me-2" style="width:48px;height:48px;"/>
-                        <a t-attf-href="/shop/product/{{ line.product_id.id }}">
-                          <t t-esc="line.product_id.display_name"/>
-                        </a>
-                      </t>
-                      <t t-if="line.is_custom">
-                        <span class="fw-bold">
-                          <t t-esc="line.custom_name"/>
-                        </span>
-                      </t>
-                    </div>
-                  </td>
-                  <!-- desktop-only -->
-                  <td class="d-none d-md-table-cell">
-                    <t t-esc="line.total_ordered_qty if not line.is_custom else '–'"/>
-                  </td>
-                  <td class="d-none d-md-table-cell">
-                    <t t-if="not line.is_custom">
-                      <input type="number" class="form-control" t-att-name="'target_%s' % line.id" t-att-value="str(line.target_qty or 0)" min="0"/>
-                    </t>
-                    <t t-else="">–</t>
-                  </td>
-
-                  <td class="d-none d-md-table-cell">
-                    <input type="number" class="form-control" t-att-name="'qty_%s' % line.id" t-att-value="str(line.current_qty or 0)" min="0"/>
-                  </td>
-                  <td class="d-none d-md-table-cell">
-                    <form t-attf-id="reorder-form-#{line.id}" action="/my/inventory/reorder" method="post" style="display:none;">
-                      <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                      <input type="hidden" name="line_id" t-att-value="line.id"/>
-                    </form>
-                    <button type="button" class="btn btn-primary w-100 js-reorder-btn" t-att-disabled="line.current_qty >= line.target_qty and 'disabled' or None" t-attf-data-line-id="{{ line.id }}">
-                      Reorder
-                    </button>
-                  </td>
-                </tr>
-                <!-- detail row for mobile -->
-                <tr t-att-id="'inv-' + str(line.id)" class="collapse d-md-none">
-                  <td colspan="6">
-                    <!-- Row A: Total Ordered -->
-                    <div class="d-flex align-items-center mt-1">
-                      <div style="flex: 0 0 70%;">
-                        <strong>Total Ordered:</strong>
-                      </div>
-                      <div style="flex: 0 0 30%;" class="text-end">
-                        <t t-esc="line.total_ordered_qty if not line.is_custom else '–'"/>
-                      </div>
-                    </div>
-
-                    <!-- Row B: Target Stock -->
-                    <div class="d-flex align-items-center mt-1">
-                      <div style="flex: 0 0 70%;">
-                        <strong>Target Stock:</strong>
-                      </div>
-                      <div style="flex: 0 0 30%;" class="text-end">
-                        <t t-if="not line.is_custom">
-                          <input type="number" class="form-control form-control-sm text-end" style="width:100%;" t-att-name="'target_%s' % line.id" t-att-value="str(line.target_qty or 0)" min="0"/>
-                        </t>
-                        <t t-else="">
-                          <span>–</span>
-                        </t>
-                      </div>
-                    </div>
-
-                    <!-- Row C: Current Stock -->
-                    <div class="d-flex align-items-center mt-1">
-                      <div style="flex: 0 0 70%;">
-                        <strong>Current Stock:</strong>
-                      </div>
-                      <div style="flex: 0 0 30%;" class="text-middle">
-                        <input type="number" class="form-control form-control-lg text-end" style="width:100%;" t-att-name="'qty_%s' % line.id" t-att-value="str(line.current_qty or 0)" min="0"/>
-                      </div>
-                    </div>
-
-
-                    <!-- Row D: Reorder button -->
-                    <div class="row mt-2">
-                      <div class="col-12">
-                        <form t-attf-id="reorder-form-#{line.id}" action="/my/inventory/reorder" method="post" style="display:none;">
-                          <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                          <input type="hidden" name="line_id" t-att-value="line.id"/>
-                        </form>
-                        <button type="button" class="btn btn-primary w-100 js-reorder-btn" t-att-disabled="line.current_qty >= line.target_qty and 'disabled' or None" t-attf-data-line-id="{{ line.id }}">
-                          Reorder
-                        </button>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-
-              </t>
-            </tbody>
-          </table>
-
-          <!-- Save + Reorder All -->
-        </form>        <!-- closes form_update -->
-
-        <div class="d-flex align-items-center gap-2 mt-3">
-          <!-- Save Inventory now outside the form tag, but will submit form_update -->
-          <button type="submit" form="form_update" class="btn btn-primary">
-                Save Inventory
-          </button>
-
-          <!-- Reorder All remains its own form -->
-          <form id="form_reorder_all" t-att-action="url_for('/my/inventory/reorder_all')" method="post" class="m-0">
+        <div id="inventoryTableContainer">
+          <form id="form_update" method="post" t-att-action="url_for('/my/inventory/update')">
             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-            <button type="submit" form="form_reorder_all" class="btn btn-warning js-reorder-all-btn" t-att-disabled="not needs_reorder and 'disabled' or None">
-                  Reorder All
+
+            <table class="table table-striped align-middle inventory-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th class="d-none d-md-table-cell">Total Ordered</th>
+                  <th class="d-none d-md-table-cell">Target Stock</th>
+                  <th class="d-none d-md-table-cell">Current Stock</th>
+                  <th class="d-none d-md-table-cell">Action</th>
+                  <th class="edit-column">Delete</th>
+                </tr>
+              </thead>
+              <tbody>
+                <t t-foreach="inventory" t-as="line">
+                  <!-- main row -->
+                  <tr t-att-data-line-id="line.id">
+                    <!-- product -->
+                    <td>
+                      <div class="d-flex align-items-center gap-2">
+                        <!-- only on mobile -->
+                        <span class="toggle-collapse collapsed d-md-none" data-bs-toggle="collapse" t-att-data-bs-target="'#inv-' + str(line.id)">
+                          <i class="fa fa-chevron-down" aria-hidden="true"/>
+                        </span>
+                        <!-- then your image + link as before -->
+                        <t t-if="not line.is_custom">
+                          <img t-att-src="'/web/image/product.product/%s/image_128' % line.product_id.id" class="rounded me-2" style="width:48px;height:48px;"/>
+                          <a t-attf-href="/shop/product/{{ line.product_id.id }}">
+                            <t t-esc="line.product_id.display_name"/>
+                          </a>
+                        </t>
+                        <t t-if="line.is_custom">
+                          <span class="fw-bold">
+                            <t t-esc="line.custom_name"/>
+                          </span>
+                        </t>
+                      </div>
+                    </td>
+                    <!-- desktop-only -->
+                    <td class="d-none d-md-table-cell">
+                      <t t-esc="line.total_ordered_qty if not line.is_custom else '–'"/>
+                    </td>
+                    <td class="d-none d-md-table-cell">
+                      <t t-if="not line.is_custom">
+                        <input type="number" class="form-control" t-att-name="'target_%s' % line.id" t-att-value="str(line.target_qty or 0)" min="0"/>
+                      </t>
+                      <t t-else="">–</t>
+                    </td>
+
+                    <td class="d-none d-md-table-cell">
+                      <input type="number" class="form-control" t-att-name="'qty_%s' % line.id" t-att-value="str(line.current_qty or 0)" min="0"/>
+                    </td>
+                    <td class="d-none d-md-table-cell">
+                      <form t-attf-id="reorder-form-#{line.id}" action="/my/inventory/reorder" method="post" style="display:none;">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <input type="hidden" name="line_id" t-att-value="line.id"/>
+                      </form>
+                      <button type="button" class="btn btn-primary w-100 js-reorder-btn" t-att-disabled="line.current_qty >= line.target_qty and 'disabled' or None" t-attf-data-line-id="{{ line.id }}">
+                        Reorder
+                      </button>
+                    </td>
+                    <td class="edit-column">
+                      <button type="button" class="delete-btn" t-att-data-line-id="line.id" title="Delete this item">
+                        <i class="fa fa-times"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <!-- detail row for mobile -->
+                  <tr t-att-id="'inv-' + str(line.id)" class="collapse d-md-none" t-att-data-line-id="line.id">
+                    <td colspan="6">
+                      <!-- Row A: Total Ordered -->
+                      <div class="d-flex align-items-center mt-1">
+                        <div style="flex: 0 0 70%;">
+                          <strong>Total Ordered:</strong>
+                        </div>
+                        <div style="flex: 0 0 30%;" class="text-end">
+                          <t t-esc="line.total_ordered_qty if not line.is_custom else '–'"/>
+                        </div>
+                      </div>
+
+                      <!-- Row B: Target Stock -->
+                      <div class="d-flex align-items-center mt-1">
+                        <div style="flex: 0 0 70%;">
+                          <strong>Target Stock:</strong>
+                        </div>
+                        <div style="flex: 0 0 30%;" class="text-middle">
+                          <t t-if="not line.is_custom">
+                            <input type="number" class="form-control form-control-lg text-end" style="width:100%;" t-att-name="'target_%s' % line.id" t-att-value="str(line.target_qty or 0)" min="0"/>
+                          </t>
+                          <t t-else="">
+                            <span>–</span>
+                          </t>
+                        </div>
+                      </div>
+
+                      <!-- Row C: Current Stock -->
+                      <div class="d-flex align-items-center mt-1">
+                        <div style="flex: 0 0 70%;">
+                          <strong>Current Stock:</strong>
+                        </div>
+                        <div style="flex: 0 0 30%;" class="text-middle">
+                          <input type="number" class="form-control form-control-lg text-end" style="width:100%;" t-att-name="'qty_%s' % line.id" t-att-value="str(line.current_qty or 0)" min="0"/>
+                        </div>
+                      </div>
+
+                      <!-- Row D: Reorder button -->
+                      <div class="row mt-2">
+                        <div class="col-12">
+                          <form t-attf-id="reorder-form-#{line.id}" action="/my/inventory/reorder" method="post" style="display:none;">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <input type="hidden" name="line_id" t-att-value="line.id"/>
+                          </form>
+                          <button type="button" class="btn btn-primary w-100 js-reorder-btn" t-att-disabled="line.current_qty >= line.target_qty and 'disabled' or None" t-attf-data-line-id="{{ line.id }}">
+                            Reorder
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Row E: Delete button (mobile edit mode) -->
+                      <div class="row mt-2 mobile-edit-actions" style="display: none;">
+                        <div class="col-12">
+                          <button type="button" class="btn btn-danger w-100 delete-btn-mobile" t-att-data-line-id="line.id">
+                            <i class="fa fa-trash"></i> Delete Item
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+
+                </t>
+              </tbody>
+            </table>
+
+            <!-- Save + Reorder All -->
+          </form>        <!-- closes form_update -->
+
+          <div class="d-flex align-items-center gap-2 mt-3">
+            <!-- Save Inventory now outside the form tag, but will submit form_update -->
+            <button type="submit" form="form_update" class="btn btn-primary">
+                  Save Inventory
             </button>
-          </form>
+
+            <!-- Reorder All remains its own form -->
+            <form id="form_reorder_all" t-att-action="url_for('/my/inventory/reorder_all')" method="post" class="m-0">
+              <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+              <button type="submit" form="form_reorder_all" class="btn btn-warning js-reorder-all-btn" t-att-disabled="not needs_reorder and 'disabled' or None">
+                    Reorder All
+              </button>
+            </form>
+          </div>
         </div>
       </div>
       <script>
         document.addEventListener('DOMContentLoaded', function () {
+          // Edit mode toggle
+          var editToggleBtn = document.getElementById('editToggleBtn');
+          var container = document.getElementById('inventoryTableContainer');
+          
+          var isEditMode = (localStorage.getItem('inventoryEditMode') === 'true');
+          if (isEditMode) {
+            container.classList.add('edit-mode');
+            editToggleBtn.innerHTML = '<i class="fa fa-times"></i> Cancel';
+            editToggleBtn.className   = 'btn btn-danger mb-3 edit-btn';
+            document.querySelectorAll('.mobile-edit-actions').forEach(function(el) {
+              el.style.display = 'block';
+            });
+          }
+
+
+          editToggleBtn.addEventListener('click', function() {
+            isEditMode = !isEditMode;
+            
+            if (isEditMode) {
+              container.classList.add('edit-mode');
+              editToggleBtn.innerHTML = '<i class="fa fa-times"></i> Cancel';
+              editToggleBtn.className = 'btn btn-danger mb-3 edit-btn';
+              
+              // Show mobile delete buttons
+              document.querySelectorAll('.mobile-edit-actions').forEach(function(el) {
+                el.style.display = 'block';
+              });
+            } else {
+              container.classList.remove('edit-mode');
+              editToggleBtn.innerHTML = '<i class="fa fa-edit"></i> Edit';
+              editToggleBtn.className = 'btn btn-outline-dark mb-3 edit-btn';
+
+              // Hide mobile delete buttons
+              document.querySelectorAll('.mobile-edit-actions').forEach(function(el) {
+                el.style.display = 'none';
+              });
+            }
+            localStorage.setItem('inventoryEditMode', isEditMode);
+          });
+
+          // Delete functionality
+          function handleDelete(lineId) {
+            if (confirm('Are you sure you want to delete this item?')) {
+              var form = document.createElement('form');
+              form.method = 'POST';
+              form.action = '/my/inventory/delete';
+              form.style.display = 'none';
+              
+              var csrfToken = document.createElement('input');
+              csrfToken.type = 'hidden';
+              csrfToken.name = 'csrf_token';
+              csrfToken.value = document.querySelector('[name="csrf_token"]').value;
+              
+              var lineIdInput = document.createElement('input');
+              lineIdInput.type = 'hidden';
+              lineIdInput.name = 'line_id';
+              lineIdInput.value = lineId;
+              
+              form.appendChild(csrfToken);
+              form.appendChild(lineIdInput);
+              document.body.appendChild(form);
+              form.submit();
+            }
+          }
+
+          // Desktop delete buttons
+          document.addEventListener('click', function(e) {
+            var btn = e.target.closest('.delete-btn');
+            if (btn) {
+              var lineId = btn.getAttribute('data-line-id');
+              handleDelete(lineId);
+            }
+          });
+
+          // Mobile delete buttons
+          document.addEventListener('click', function(e) {
+            var btn = e.target.closest('.delete-btn-mobile');
+            if (btn) {
+              var lineId = btn.getAttribute('data-line-id');
+              handleDelete(lineId);
+            }
+          });
+
+
+          // Existing reorder functionality
           document.querySelectorAll('.js-reorder-btn').forEach(function(btn) {
             btn.addEventListener('click', function (ev) {
               ev.preventDefault();
@@ -303,6 +473,7 @@
               .catch(function(){ btn.innerHTML = '⚠️ Failed'; btn.disabled = false; });
             });
           });
+
           var allBtn = document.querySelector('.js-reorder-all-btn');
           if (allBtn) {
             allBtn.addEventListener('click', function(ev) {
@@ -312,6 +483,7 @@
               this.closest('form').submit();
             });
           }
+
           var updateForm = document.getElementById('form_update');
           if (updateForm) {
             updateForm.addEventListener('submit', function (ev) {
