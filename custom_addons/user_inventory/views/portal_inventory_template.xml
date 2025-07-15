@@ -104,36 +104,22 @@
           <div class="header-buttons">
             <!-- left side: the two toggles -->
             <div class="toggle-group">
-              <button
-                type="button"
-                class="btn btn-success mb-3 toggle-btn"
-                data-bs-toggle="collapse"
-                data-bs-target="#catalogInventoryForm">
+              <button type="button" class="btn btn-success mb-3 toggle-btn" data-bs-toggle="collapse" data-bs-target="#catalogInventoryForm">
                 + Official Product
               </button>
-              <button
-                type="button"
-                class="btn btn-success mb-3 toggle-btn"
-                data-bs-toggle="collapse"
-                data-bs-target="#customInventoryForm">
+              <button type="button" class="btn btn-success mb-3 toggle-btn" data-bs-toggle="collapse" data-bs-target="#customInventoryForm">
                 + Custom Product
               </button>
             </div>
             <!-- right side: the edit button -->
-            <button
-              type="button"
-              id="editToggleBtn"
-              class="btn btn-outline-dark mb-3 edit-btn">
+            <button type="button" id="editToggleBtn" class="btn btn-outline-dark mb-3 edit-btn">
               <i class="fa fa-edit"></i> Edit
             </button>
           </div>
 
 
           <!-- Catalog form (collapsible) -->
-          <div
-            id="catalogInventoryForm"
-            class="collapse mb-4"
-            data-bs-parent="#inventoryAccordion">
+          <div id="catalogInventoryForm" class="collapse mb-4" data-bs-parent="#inventoryAccordion">
             <div class="card">
               <div class="card-body">
                 <h5 class="card-title">Add Product from Catalog</h5>
@@ -141,11 +127,7 @@
                   <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                   <div class="row">
                     <div class="col-md-6 mb-2">
-                      <input name="product_search"
-                            list="product_list"
-                            class="form-control"
-                            placeholder="Search for a product…"
-                            required="required"/>
+                      <input name="product_search" list="product_list" class="form-control" placeholder="Search for a product…" required="required"/>
                       <datalist id="product_list">
                         <t t-foreach="product_options" t-as="product">
                           <option t-att-value="product.display_name"/>
@@ -153,12 +135,7 @@
                       </datalist>
                     </div>
                     <div class="col-md-3 mb-2">
-                      <input type="number"
-                            name="custom_qty"
-                            class="form-control"
-                            placeholder="Quantity"
-                            min="0"
-                            required="required"/>
+                      <input type="number" name="custom_qty" class="form-control" placeholder="Quantity" min="0" required="required"/>
                     </div>
                     <div class="col-md-3 mb-2">
                       <button type="submit" class="btn btn-primary w-100">
@@ -172,10 +149,7 @@
           </div>
 
           <!-- Custom form (collapsible) -->
-          <div
-            id="customInventoryForm"
-            class="collapse mb-4"
-            data-bs-parent="#inventoryAccordion">
+          <div id="customInventoryForm" class="collapse mb-4" data-bs-parent="#inventoryAccordion">
             <div class="card">
               <div class="card-body">
                 <h5 class="card-title">Add Custom Product</h5>
@@ -183,19 +157,10 @@
                   <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                   <div class="row">
                     <div class="col-md-6 mb-2">
-                      <input type="text"
-                            name="custom_product_name"
-                            class="form-control"
-                            placeholder="Product Name"
-                            required="required"/>
+                      <input type="text" name="custom_product_name" class="form-control" placeholder="Product Name" required="required"/>
                     </div>
                     <div class="col-md-3 mb-2">
-                      <input type="number"
-                            name="custom_qty"
-                            class="form-control"
-                            placeholder="Quantity"
-                            min="0"
-                            required="required"/>
+                      <input type="number" name="custom_qty" class="form-control" placeholder="Quantity" min="0" required="required"/>
                     </div>
                     <div class="col-md-3 mb-2">
                       <button type="submit" class="btn btn-primary w-100">
@@ -346,21 +311,21 @@
             </table>
 
             <!-- Save + Reorder All -->
-          </form>        <!-- closes form_update -->
+          </form>          <!-- closes form_update -->
 
-          <div class="d-flex align-items-center gap-2 mt-3">
-            <!-- Save Inventory now outside the form tag, but will submit form_update -->
-            <button type="submit" form="form_update" class="btn btn-primary">
-                  Save Inventory
-            </button>
-
-            <!-- Reorder All remains its own form -->
-            <form id="form_reorder_all" t-att-action="url_for('/my/inventory/reorder_all')" method="post" class="m-0">
-              <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-              <button type="submit" form="form_reorder_all" class="btn btn-warning js-reorder-all-btn" t-att-disabled="not needs_reorder and 'disabled' or None">
-                    Reorder All
+          <!-- Wrapper to push buttons to bottom-right -->
+          <div class="d-flex justify-content-end mt-4">
+            <div class="d-flex align-items-center gap-2">
+              <button type="submit" form="form_update" class="btn btn-primary">
+              Save Inventory
               </button>
-            </form>
+              <form id="form_reorder_all" t-att-action="url_for('/my/inventory/reorder_all')" method="post" class="m-0">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                <button type="submit" form="form_reorder_all" class="btn btn-warning js-reorder-all-btn" t-att-disabled="not needs_reorder and 'disabled' or None">
+                Reorder All
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
@@ -413,7 +378,7 @@
               form.method = 'POST';
               form.action = '/my/inventory/delete';
               form.style.display = 'none';
-              
+
               var csrfToken = document.createElement('input');
               csrfToken.type = 'hidden';
               csrfToken.name = 'csrf_token';
