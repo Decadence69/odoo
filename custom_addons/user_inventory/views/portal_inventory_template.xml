@@ -41,7 +41,7 @@
             width: 100% !important;    
           }
           .edit-btn {
-            width: 100% !important;
+            margin-left: auto !important;
           }
         }
 
@@ -94,6 +94,64 @@
           padding-top: 1rem;
           border-top: 1px solid #dee2e6;
         }
+
+        /* Drag and drop styles */
+        .drag-handle {
+          cursor: grab;
+          color: #6c757d;
+          font-size: 1.2em;
+          padding: 0.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .drag-handle:hover {
+          color: #495057;
+        }
+        
+        .drag-handle:active {
+          cursor: grabbing;
+        }
+        
+        .sortable-ghost {
+          opacity: 0.4;
+        }
+        
+        .sortable-chosen {
+          background-color: #e3f2fd;
+        }
+        
+        .sortable-drag {
+          opacity: 0.8;
+          transform: rotate(5deg);
+        }
+        
+        /* Hide drag handle in normal mode, show in edit mode */
+        .drag-handle {
+          display: none !important;
+        }
+
+        .edit-mode .drag-handle {
+          display: table-cell !important;
+        }
+        
+        /* Hide drag header in normal mode, show in edit mode */
+        .drag-header {
+          display: none !important;
+        }
+
+        .edit-mode .drag-header {
+          display: table-cell !important;
+        }
+        
+        /* Mobile drag handle */
+        @media (max-width: 767.98px) {
+          .drag-handle {
+            font-size: 1em;
+            padding: 0.3rem;
+          }
+        }
       </style>
 
       <div class="container my-5">
@@ -111,6 +169,59 @@
                 + Custom Product
               </button>
             </div>
+            <div id="catalogInventoryForm" class="collapse mb-4" data-bs-parent="#inventoryAccordion">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title">Add Product from Catalog</h5>
+                  <form t-att-action="url_for('/my/inventory/add_existing')" method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <div class="row">
+                      <div class="col-md-6 mb-2">
+                        <input name="product_search" list="product_list" class="form-control" placeholder="Search for a product…" required="required"/>
+                        <datalist id="product_list">
+                          <t t-foreach="product_options" t-as="product">
+                            <option t-att-value="product.display_name"/>
+                          </t>
+                        </datalist>
+                      </div>
+                      <div class="col-md-3 mb-2">
+                        <input type="number" name="custom_qty" class="form-control" placeholder="Quantity" min="0" required="required"/>
+                      </div>
+                      <div class="col-md-3 mb-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                          Add Product
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+  
+            <!-- Custom form (collapsible) -->
+            <div id="customInventoryForm" class="collapse mb-4" data-bs-parent="#inventoryAccordion">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title">Add Custom Product</h5>
+                  <form t-att-action="url_for('/my/inventory/add_custom')" method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                    <div class="row">
+                      <div class="col-md-6 mb-2">
+                        <input type="text" name="custom_product_name" class="form-control" placeholder="Product Name" required="required"/>
+                      </div>
+                      <div class="col-md-3 mb-2">
+                        <input type="number" name="custom_qty" class="form-control" placeholder="Quantity" min="0" required="required"/>
+                      </div>
+                      <div class="col-md-3 mb-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                          Add Record
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
             <!-- right side: the edit button -->
             <button type="button" id="editToggleBtn" class="btn btn-outline-dark mb-3 edit-btn">
               <i class="fa fa-edit"></i> Edit
@@ -119,59 +230,6 @@
 
 
           <!-- Catalog form (collapsible) -->
-          <div id="catalogInventoryForm" class="collapse mb-4" data-bs-parent="#inventoryAccordion">
-            <div class="card">
-              <div class="card-body">
-                <h5 class="card-title">Add Product from Catalog</h5>
-                <form t-att-action="url_for('/my/inventory/add_existing')" method="post">
-                  <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                  <div class="row">
-                    <div class="col-md-6 mb-2">
-                      <input name="product_search" list="product_list" class="form-control" placeholder="Search for a product…" required="required"/>
-                      <datalist id="product_list">
-                        <t t-foreach="product_options" t-as="product">
-                          <option t-att-value="product.display_name"/>
-                        </t>
-                      </datalist>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                      <input type="number" name="custom_qty" class="form-control" placeholder="Quantity" min="0" required="required"/>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                      <button type="submit" class="btn btn-primary w-100">
-                        Add Product
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-
-          <!-- Custom form (collapsible) -->
-          <div id="customInventoryForm" class="collapse mb-4" data-bs-parent="#inventoryAccordion">
-            <div class="card">
-              <div class="card-body">
-                <h5 class="card-title">Add Custom Product</h5>
-                <form t-att-action="url_for('/my/inventory/add_custom')" method="post">
-                  <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                  <div class="row">
-                    <div class="col-md-6 mb-2">
-                      <input type="text" name="custom_product_name" class="form-control" placeholder="Product Name" required="required"/>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                      <input type="number" name="custom_qty" class="form-control" placeholder="Quantity" min="0" required="required"/>
-                    </div>
-                    <div class="col-md-3 mb-2">
-                      <button type="submit" class="btn btn-primary w-100">
-                        Add Record
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- Inventory table + actions -->
@@ -182,6 +240,9 @@
             <table class="table table-striped align-middle inventory-table">
               <thead>
                 <tr>
+                  <th class="drag-header text-center" style="width: 50px;">
+                    <i class="fa fa-sort" title="Drag to reorder"></i>
+                  </th>
                   <th>Product</th>
                   <th class="d-none d-md-table-cell">Total Ordered</th>
                   <th class="d-none d-md-table-cell">Target Stock</th>
@@ -190,11 +251,17 @@
                   <th class="edit-column">Delete</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="sortable-inventory">
                 <t t-foreach="inventory" t-as="line">
                   <!-- main row -->
-                  <tr t-att-data-line-id="line.id">
-                    <!-- product -->
+                  <tr t-att-data-line-id="line.id" class="inventory-row">
+                    <!-- Drag handle column -->
+                    <input type="hidden" t-att-name="'sequence_%s' % line.id" t-att-value="line.sequence or 0" class="sequence-field"/>
+                    <td class="text-center drag-handle">
+                      <i class="o_row_handle oi oi-draggable ui-sortable-handle text-muted"></i>
+                    </td>
+                    
+                    <!-- product column (unchanged) -->
                     <td>
                       <div class="d-flex align-items-center gap-2">
                         <!-- only on mobile -->
@@ -205,19 +272,20 @@
                         <t t-if="not line.is_custom">
                           <img t-att-src="'/web/image/product.product/%s/image_128' % line.product_id.id" class="rounded me-2" style="width:48px;height:48px;"/>
                           <a t-attf-href="/shop/product/{{ line.product_id.id }}">
-                            <t t-esc="line.product_id.display_name"/>
+                            <t t-out="line.product_id.display_name"/>
                           </a>
                         </t>
                         <t t-if="line.is_custom">
                           <span class="fw-bold">
-                            <t t-esc="line.custom_name"/>
+                            <t t-out="line.custom_name"/>
                           </span>
                         </t>
                       </div>
                     </td>
-                    <!-- desktop-only -->
+                    
+                    <!-- desktop-only columns (unchanged) -->
                     <td class="d-none d-md-table-cell">
-                      <t t-esc="line.total_ordered_qty if not line.is_custom else '–'"/>
+                      <t t-out="line.total_ordered_qty if not line.is_custom else '–'"/>
                     </td>
                     <td class="d-none d-md-table-cell">
                       <t t-if="not line.is_custom">
@@ -225,7 +293,6 @@
                       </t>
                       <t t-else="">–</t>
                     </td>
-
                     <td class="d-none d-md-table-cell">
                       <input type="number" class="form-control" t-att-name="'qty_%s' % line.id" t-att-value="str(line.current_qty or 0)" min="0"/>
                     </td>
@@ -245,15 +312,19 @@
                     </td>
                   </tr>
                   <!-- detail row for mobile -->
-                  <tr t-att-id="'inv-' + str(line.id)" class="collapse d-md-none" t-att-data-line-id="line.id">
-                    <td colspan="6">
+                  <tr t-att-id="'inv-' + str(line.id)" class="collapse d-md-none mobile-detail-row" t-att-data-line-id="line.id">
+                    <td class="text-center drag-handle">
+                      <i class="fa fa-bars text-muted"></i>
+                    </td>
+                    <td colspan="5">
+                      <!-- Your existing mobile detail content -->
                       <!-- Row A: Total Ordered -->
                       <div class="d-flex align-items-center mt-1">
                         <div style="flex: 0 0 70%;">
                           <strong>Total Ordered:</strong>
                         </div>
                         <div style="flex: 0 0 30%;" class="text-end">
-                          <t t-esc="line.total_ordered_qty if not line.is_custom else '–'"/>
+                          <t t-out="line.total_ordered_qty if not line.is_custom else '–'"/>
                         </div>
                       </div>
 
@@ -305,7 +376,6 @@
                       </div>
                     </td>
                   </tr>
-
                 </t>
               </tbody>
             </table>
@@ -329,8 +399,63 @@
           </div>
         </div>
       </div>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
       <script>
         document.addEventListener('DOMContentLoaded', function () {
+          // Initialize Sortable
+          var sortableElement = document.getElementById('sortable-inventory');
+          var sortable = null;
+          
+          if (sortableElement) {
+            sortable = Sortable.create(sortableElement, {
+              handle: '.drag-handle',
+              animation: 150,
+              ghostClass: 'sortable-ghost',
+              chosenClass: 'sortable-chosen',
+              dragClass: 'sortable-drag',
+              filter: '.mobile-detail-row', // Ignore mobile detail rows
+              onEnd: function (evt) {
+                // Get all inventory row elements (not mobile detail rows)
+                var rows = Array.from(sortableElement.querySelectorAll('.inventory-row'));
+                var lineIds = rows.map(function(row) {
+                  return row.getAttribute('data-line-id');
+                });
+                
+                // Update hidden sequence fields in the form
+                rows.forEach(function(row, index) {
+                  var lineId = row.getAttribute('data-line-id');
+                  var sequenceField = document.querySelector('input[name="sequence_' + lineId + '"]');
+                  if (sequenceField) {
+                    sequenceField.value = (index + 1) * 10;
+                  }
+                });
+                
+                // Send AJAX request to update sequence
+                fetch('/my/inventory/update_sequence', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    line_ids: lineIds
+                  })
+                })
+                .then(function(response) {
+                  return response.json();
+                })
+                .then(function(data) {
+                  if (!data.success) {
+                    console.error('Failed to update sequence:', data.error);
+                  }
+                })
+                .catch(function(error) {
+                  console.error('Error updating sequence:', error);
+                });
+              }
+            });
+          }
+          
+          // YOUR EXISTING JAVASCRIPT CODE STARTS HERE (keep everything from your original script)
           // Edit mode toggle
           var editToggleBtn = document.getElementById('editToggleBtn');
           var container = document.getElementById('inventoryTableContainer');
@@ -343,8 +468,9 @@
             document.querySelectorAll('.mobile-edit-actions').forEach(function(el) {
               el.style.display = 'block';
             });
+            // Enable sorting in edit mode
+            if (sortable) sortable.option('disabled', false);
           }
-
 
           editToggleBtn.addEventListener('click', function() {
             isEditMode = !isEditMode;
@@ -358,6 +484,9 @@
               document.querySelectorAll('.mobile-edit-actions').forEach(function(el) {
                 el.style.display = 'block';
               });
+              
+              // Enable sorting in edit mode
+              if (sortable) sortable.option('disabled', false);
             } else {
               container.classList.remove('edit-mode');
               editToggleBtn.innerHTML = '<i class="fa fa-edit"></i> Edit';
@@ -367,6 +496,9 @@
               document.querySelectorAll('.mobile-edit-actions').forEach(function(el) {
                 el.style.display = 'none';
               });
+              
+              // Disable sorting in normal mode
+              if (sortable) sortable.option('disabled', true);
             }
             localStorage.setItem('inventoryEditMode', isEditMode);
           });

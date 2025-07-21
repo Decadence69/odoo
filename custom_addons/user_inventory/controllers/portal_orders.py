@@ -13,7 +13,7 @@ class CustomSalePortal(SalePortal):
         # Rebuild the order list with additional states
         orders = request.env['sale.order'].sudo().search([
             ('partner_id', '=', request.env.user.partner_id.id),
-            ('state', 'in', ['draft', 'sent', 'sale', 'done'])  # Include Placed orders
+            ('state', 'in', ['draft', 'sent', 'sale', 'done', 'cancel'])  # Include Placed orders
         ], order='date_order desc')
 
         response.qcontext['orders'] = orders

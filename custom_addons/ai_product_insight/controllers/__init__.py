@@ -1,0 +1,1 @@
+from . import ai_insights_controller

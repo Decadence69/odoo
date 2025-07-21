@@ -1,0 +1,7 @@
+<odoo>
+  <template id="assets_frontend" inherit_id="web.assets_frontend">
+    <xpath expr="." position="inside">
+      <script src="/ai_product_insight/static/src/js/ai_insights.js"/>
+    </xpath>
+  </template>
+</odoo>

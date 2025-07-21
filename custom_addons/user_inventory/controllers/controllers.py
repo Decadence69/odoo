@@ -3,6 +3,7 @@ from odoo.http import request
 import logging
 import re
 from odoo import fields
+import json
 
 _logger = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ class PortalInventory(http.Controller):
                 })
 
         # Load updated inventory lines
-        updated_inventory = inventory_model.search([('user_id', '=', user.id)])
+        updated_inventory = inventory_model.search([('user_id', '=', user.id)], order='sequence, id')
 
         # _logger.info("RENDERING INVENTORY LINES")
         # for inv in updated_inventory:
@@ -59,16 +60,14 @@ class PortalInventory(http.Controller):
             'product_options': product_options,
             'needs_reorder':  needs_reorder,
         })
-
-
-
+    
     @http.route(['/my/inventory/update'], type='http', auth='user', methods=['POST'], website=True, csrf=True)
     def portal_inventory_update(self, **post):
         user = request.env.user
         inventory_model = request.env['user.inventory.line'].sudo()
 
         for key, val in post.items():
-            if key.startswith("qty_") or key.startswith("target_"):
+            if key.startswith("qty_") or key.startswith("target_") or key.startswith("sequence_"):
                 try:
                     line_id = int(key.split("_")[1])
                     line = inventory_model.browse(line_id)
@@ -77,9 +76,10 @@ class PortalInventory(http.Controller):
                             line.current_qty = int(val)
                         elif key.startswith("target_"):
                             line.target_qty = int(val)
+                        elif key.startswith("sequence_"):
+                            line.sequence = int(val)
                 except Exception as e:
                     _logger.warning(f"Error updating inventory field {key}: {e}")
-
 
         return request.redirect('/my/inventory')
     
@@ -291,3 +291,16 @@ class PortalInventory(http.Controller):
         
         return request.redirect('/my/inventory')
 
+    @http.route(['/my/inventory/update_sequence'], type='json', auth='user', methods=['POST'], website=True, csrf=False)
+    def update_inventory_sequence(self, **post):
+        user = request.env.user
+        inventory_model = request.env['user.inventory.line'].sudo()
+        
+        line_ids = post.get('line_ids', [])
+        
+        for index, line_id in enumerate(line_ids):
+            line = inventory_model.browse(int(line_id))
+            if line and line.user_id.id == user.id:
+                line.sequence = (index + 1) * 10
+        
+        return {'success': True}

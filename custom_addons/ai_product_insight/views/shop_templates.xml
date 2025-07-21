@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Add AI Insights button to product cards in shop catalog -->
+    <template id="ai_insights_product_card" inherit_id="website_sale.products_item" priority="20">
+        <xpath expr="//div[hasclass('product_price')]" position="after">
+            <div class="ai-insights-container mt-2">
+                <button type="button" 
+                        class="btn btn-sm btn-outline-primary ai-insights-btn" 
+                        t-att-data-product-id="product.id"
+                        onclick="return false;">
+                    <i class="oi oi-search"></i>
+                    AI Insights
+                </button>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- Add AI Insights button to product page -->
+    <template id="ai_insights_product_page" inherit_id="website_sale.product" priority="20">
+        <xpath expr="//div[@id='product_details']//div[hasclass('js_product')]" position="inside">
+            <div class="ai-insights-product-page mt-3">
+                <button class="btn btn-primary ai-insights-btn" 
+                        t-att-data-product-id="product.id">
+                    <i class="oi oi-search"></i>
+                    Get AI Insights
+                </button>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- AI Insights Modal -->
+    <template id="insights_modal" name="AI Insights Modal">
+        <div class="modal fade" id="aiInsightsModal" tabindex="-1" aria-labelledby="aiInsightsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="aiInsightsModalLabel">
+                            <i class="fa fa-brain me-2"></i>
+                            AI Insights for <span t-esc="product.name"/>
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="insights-loading" class="text-center" style="display: none;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Generating AI insights...</p>
+                        </div>
+                        
+                        <div id="insights-content">
+                            <t t-if="insights and insights.get('success')">
+                                <t t-set="data" t-value="insights.get('data', {})"/>
+                                
+                                <!-- Key Features -->
+                                <t t-if="data.get('key_features')">
+                                    <div class="mb-4">
+                                        <h6 class="text-primary">
+                                            <i class="fa fa-star me-2"></i>Key Features
+                                        </h6>
+                                        <ul class="list-unstyled">
+                                            <t t-foreach="data['key_features']" t-as="feature">
+                                                <li><i class="fa fa-check text-success me-2"></i><t t-esc="feature"/></li>
+                                            </t>
+                                        </ul>
+                                    </div>
+                                </t>
+
+                                <!-- Target Audience -->
+                                <t t-if="data.get('target_audience')">
+                                    <div class="mb-4">
+                                        <h6 class="text-primary">
+                                            <i class="fa fa-users me-2"></i>Target Audience
+                                        </h6>
+                                        <p t-esc="data['target_audience']"/>
+                                    </div>
+                                </t>
+
+                                <!-- Use Cases -->
+                                <t t-if="data.get('use_cases')">
+                                    <div class="mb-4">
+                                        <h6 class="text-primary">
+                                            <i class="fa fa-lightbulb me-2"></i>Use Cases
+                                        </h6>
+                                        <ul class="list-unstyled">
+                                            <t t-foreach="data['use_cases']" t-as="use_case">
+                                                <li><i class="fa fa-arrow-right text-info me-2"></i><t t-esc="use_case"/></li>
+                                            </t>
+                                        </ul>
+                                    </div>
+                                </t>
+
+                                <!-- Competitive Advantages -->
+                                <t t-if="data.get('competitive_advantages')">
+                                    <div class="mb-4">
+                                        <h6 class="text-primary">
+                                            <i class="fa fa-trophy me-2"></i>Competitive Advantages
+                                        </h6>
+                                        <ul class="list-unstyled">
+                                            <t t-foreach="data['competitive_advantages']" t-as="advantage">
+                                                <li><i class="fa fa-plus text-success me-2"></i><t t-esc="advantage"/></li>
+                                            </t>
+                                        </ul>
+                                    </div>
+                                </t>
+
+                                <!-- Recommendations -->
+                                <t t-if="data.get('recommendations')">
+                                    <div class="mb-4">
+                                        <h6 class="text-primary">
+                                            <i class="fa fa-compass me-2"></i>Recommendations
+                                        </h6>
+                                        <ul class="list-unstyled">
+                                            <t t-foreach="data['recommendations']" t-as="recommendation">
+                                                <li><i class="fa fa-thumbs-up text-warning me-2"></i><t t-esc="recommendation"/></li>
+                                            </t>
+                                        </ul>
+                                    </div>
+                                </t>
+
+                                <!-- Marketing Angles -->
+                                <t t-if="data.get('marketing_angles')">
+                                    <div class="mb-4">
+                                        <h6 class="text-primary">
+                                            <i class="fa fa-megaphone me-2"></i>Marketing Angles
+                                        </h6>
+                                        <ul class="list-unstyled">
+                                            <t t-foreach="data['marketing_angles']" t-as="angle">
+                                                <li><i class="fa fa-bullhorn text-primary me-2"></i><t t-esc="angle"/></li>
+                                            </t>
+                                        </ul>
+                                    </div>
+                                </t>
+
+                                <!-- Raw text fallback -->
+                                <t t-if="data.get('raw_text')">
+                                    <div class="mb-4">
+                                        <h6 class="text-primary">
+                                            <i class="fa fa-info-circle me-2"></i>AI Analysis
+                                        </h6>
+                                        <p t-esc="data['raw_text']"/>
+                                    </div>
+                                </t>
+
+                                <!-- Last updated -->
+                                <t t-if="insights.get('last_updated')">
+                                    <div class="text-muted small">
+                                        <i class="fa fa-clock me-1"></i>
+                                        Last updated: <t t-esc="insights['last_updated']"/>
+                                    </div>
+                                </t>
+                            </t>
+                            
+                            <t t-else="">
+                                <div class="text-center">
+                                    <i class="fa fa-info-circle fa-3x text-muted mb-3"></i>
+                                    <p>No AI insights available yet. Click "Generate Insights" to create them.</p>
+                                    <button class="btn btn-primary" id="generate-insights-btn">
+                                        <i class="fa fa-cog me-2"></i>Generate Insights
+                                    </button>
+                                </div>
+                            </t>
+                        </div>
+                        
+                        <div id="insights-error" class="alert alert-danger" style="display: none;">
+                            <i class="fa fa-exclamation-triangle me-2"></i>
+                            <span id="error-message">An error occurred while loading insights.</span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="refresh-insights-btn">
+                            <i class="fa fa-refresh me-2"></i>Refresh Insights
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Error Modal -->
+    <template id="error_modal" name="Error Modal">
+        <div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Error</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-danger">
+                            <i class="fa fa-exclamation-triangle me-2"></i>
+                            <t t-esc="error"/>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+</odoo>

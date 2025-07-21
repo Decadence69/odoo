@@ -1,0 +1,182 @@
+/* static/src/css/ai_insights.css */
+
+/* AI Insights button styling */
+.ai-insights-btn {
+    transition: all 0.3s ease;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+}
+
+.ai-insights-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ai-insights-btn i {
+    color: #6f42c1;
+}
+
+/* Product card AI insights container */
+.ai-insights-container {
+    text-align: center;
+}
+
+/* Product page AI insights */
+.ai-insights-product-page .ai-insights-btn {
+    font-size: 1rem;
+    padding: 10px 20px;
+    min-width: 180px;
+}
+
+/* Modal styling */
+#aiInsightsModal .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 8px 8px 0 0;
+}
+
+#aiInsightsModal .modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+#aiInsightsModal .modal-body {
+    padding: 2rem;
+}
+
+#aiInsightsModal .modal-body h6 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 0.5rem;
+}
+
+#aiInsightsModal .modal-body ul {
+    margin-bottom: 1.5rem;
+}
+
+#aiInsightsModal .modal-body li {
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0;
+}
+
+/* Loading spinner */
+#insights-loading {
+    padding: 3rem 0;
+}
+
+#insights-loading .spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Error styling */
+#insights-error {
+    margin-top: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .ai-insights-btn {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+    
+    .ai-insights-product-page .ai-insights-btn {
+        font-size: 0.9rem;
+        padding: 8px 16px;
+        min-width: 150px;
+    }
+    
+    #aiInsightsModal .modal-body {
+        padding: 1rem;
+    }
+}
+
+/* Animation for modal appearance */
+.modal.fade .modal-dialog {
+    transform: scale(0.8);
+    transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: scale(1);
+}
+
+/* Insight categories styling */
+.insight-category {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #007bff;
+}
+
+.insight-category h6 {
+    margin-bottom: 0.75rem;
+    color: #495057;
+}
+
+.insight-category ul li {
+    background: white;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+}
+
+/* Success states */
+.text-success {
+    color: #28a745 !important;
+}
+
+.text-info {
+    color: #17a2b8 !important;
+}
+
+.text-warning {
+    color: #ffc107 !important;
+}
+
+.text-primary {
+    color: #007bff !important;
+}
+
+/* Backend tree view styling */
+.o_list_table .o_data_cell.o_ai_insights_field {
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.o_list_table .o_ai_insights_field {
+    font-size: 12px;
+    color: #6c757d;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin: 2px 0;
+}
+
+/* Backend form view styling */
+.o_form_view .o_field_widget.o_field_text.o_ai_insights {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 8px;
+    border: 1px solid #e9ecef;
+}
+
+/* Backend field label styling */
+.o_form_view .o_field_widget[name="ai_insights"] label {
+    font-weight: 600;
+    color: #495057;
+}
+
+/* Backend readonly field styling */
+.o_form_view .o_field_widget.o_readonly.o_ai_insights {
+    background-color: #f1f3f4;
+    font-style: italic;
+}
+
+/* ... rest of your existing CSS ... */

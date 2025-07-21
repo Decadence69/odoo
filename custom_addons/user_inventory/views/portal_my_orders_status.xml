@@ -1,12 +1,12 @@
 <odoo>
   <template id="portal_my_orders_add_status" inherit_id="sale.portal_my_orders">
     
-    <!-- Add new table header -->
+    <!-- Add new column header -->
     <xpath expr="//thead/tr" position="inside">
       <th class="text-end">Status</th>
     </xpath>
 
-    <!-- Add new status cell per row -->
+    <!-- Add status badge cell per order -->
     <xpath expr="//t[@t-foreach='orders']/tr" position="inside">
       <td class="text-end">
         <t t-if="order.state in ['sale', 'done']">
@@ -14,6 +14,9 @@
         </t>
         <t t-elif="order.state in ['draft', 'sent']">
           <span class="badge bg-warning text-dark">Placed</span>
+        </t>
+        <t t-elif="order.state == 'cancel'">
+          <span class="badge bg-danger">Cancelled</span>
         </t>
         <t t-else="">
           <span class="badge bg-secondary">Other</span>

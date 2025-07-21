@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Add AI Insights fields to product form view -->
+    <record id="product_template_form_view_ai_insights" model="ir.ui.view">
+        <field name="name">product.template.form.ai.insights</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="AI Insights" name="ai_insights">
+                    <group>
+                        <field name="ai_insights_last_updated" readonly="1"/>
+                        <button name="generate_ai_insights" string="Generate AI Insights" 
+                                type="object" class="btn-primary" 
+                                icon="oi oi-search"/>
+                    </group>
+                    <group>
+                        <field name="ai_insights" widget="html" readonly="1"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Add AI Insights button to product list view -->
+    <record id="product_template_tree_view_ai_insights" model="ir.ui.view">
+        <field name="name">product.template.tree.ai.insights</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="ai_insights" 
+                    class="o_ai_insights_field" 
+                    widget="text"
+                    optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Add server action for bulk AI insights generation -->
+    <record id="action_generate_ai_insights" model="ir.actions.server">
+        <field name="name">Generate AI Insights</field>
+        <field name="model_id" ref="product.model_product_template"/>
+        <field name="binding_model_id" ref="product.model_product_template"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+            for record in records:
+                record.generate_ai_insights()
+        </field>
+    </record>
+</odoo>
