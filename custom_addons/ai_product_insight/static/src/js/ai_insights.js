@@ -57,18 +57,28 @@ const AIInsightsWidget = publicWidget.Widget.extend({
         
         var $modal = $('#aiInsightsModal');
         
+        // Clear any existing event handlers to prevent duplicates
+        $modal.off('click', '#generate-insights-btn');
+        $modal.off('click', '#refresh-insights-btn');
+        
         // Show modal
         $modal.modal('show');
         
-        // Load insights
+        // Load insights first
         this._loadInsights(productId);
         
-        // Bind events
-        $modal.find('#generate-insights-btn').off('click').on('click', function() {
+        // Bind events AFTER modal is shown - use proper event delegation
+        $modal.on('click', '#generate-insights-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Generate insights clicked');
             self._generateInsights(productId);
         });
         
-        $modal.find('#refresh-insights-btn').off('click').on('click', function() {
+        $modal.on('click', '#refresh-insights-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Refresh insights clicked');
             self._generateInsights(productId);
         });
     },
@@ -84,17 +94,15 @@ const AIInsightsWidget = publicWidget.Widget.extend({
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="aiInsightsModalLabel">
-                                <i class="fa fa-brain mr-2"></i>
-                                AI Insights for <span></span>
+                                <i class="fa fa-brain me-2"></i>
+                                AI Insights for <span id="product-name-span"></span>
                             </h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <div id="insights-loading" class="text-center" style="display: none;">
                                 <div class="spinner-border text-primary" role="status">
-                                    <span class="sr-only">Loading...</span>
+                                    <span class="visually-hidden">Loading...</span>
                                 </div>
                                 <p class="mt-2">Loading AI insights...</p>
                             </div>
@@ -102,15 +110,15 @@ const AIInsightsWidget = publicWidget.Widget.extend({
                             <div id="insights-content"></div>
                             
                             <div id="insights-error" class="alert alert-danger" style="display: none;">
-                                <i class="fa fa-exclamation-triangle mr-2"></i>
+                                <i class="fa fa-exclamation-triangle me-2"></i>
                                 <span id="error-message">An error occurred while loading insights.</span>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" id="refresh-insights-btn">
-                                <i class="fa fa-refresh mr-2"></i> Refresh Insights
+                            <button type="button" class="btn btn-primary" id="refresh-insights-btn">
+                                <i class="fa fa-refresh me-2"></i> Refresh Insights
                             </button>
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         </div>
                     </div>
                 </div>
@@ -131,8 +139,8 @@ const AIInsightsWidget = publicWidget.Widget.extend({
         
         // Updated RPC call for Odoo 18
         rpc('/ai_insights/get', {
-            product_id: productId,
-        }).then((result) => {
+            product_id: parseInt(productId),
+        }).then(function(result) {
             console.log('Raw RPC response:', result);
             console.log('Response type:', typeof result);
             console.log('Response keys:', result ? Object.keys(result) : 'null/undefined');
@@ -174,8 +182,8 @@ const AIInsightsWidget = publicWidget.Widget.extend({
         
         // Updated RPC call for Odoo 18
         rpc('/ai_insights/generate', {
-            product_id: productId
-        }).then((result) => {
+            product_id: parseInt(productId)
+        }).then(function(result) {
             console.log('Raw generation response:', result);
             console.log('Response type:', typeof result);
             console.log('Response keys:', result ? Object.keys(result) : 'null/undefined');
@@ -212,68 +220,70 @@ const AIInsightsWidget = publicWidget.Widget.extend({
     _displayInsights: function (insights) {
         var $content = $('#insights-content');
         var data = insights.data || {};
-        
         var html = '';
         
-        // Key Features
-        if (data.key_features && data.key_features.length) {
+        // Clinical Features
+        if (data.clinical_features && data.clinical_features.length) {
             html += '<div class="mb-4">';
-            html += '<h6 class="text-primary"><i class="fa fa-star me-2"></i>Key Features</h6>';
+            html += '<h6 class="text-primary"><i class="fa fa-stethoscope me-2"></i>Clinical Features</h6>';
             html += '<ul class="list-unstyled">';
-            data.key_features.forEach(function(feature) {
+            data.clinical_features.forEach(function(feature) {
                 html += '<li><i class="fa fa-check text-success me-2"></i>' + feature + '</li>';
             });
             html += '</ul></div>';
         }
         
-        // Target Audience
-        if (data.target_audience) {
+        // Recommended Procedures
+        if (data.recommended_procedures && data.recommended_procedures.length) {
             html += '<div class="mb-4">';
-            html += '<h6 class="text-primary"><i class="fa fa-users me-2"></i>Target Audience</h6>';
-            html += '<p>' + data.target_audience + '</p>';
-            html += '</div>';
-        }
-        
-        // Use Cases
-        if (data.use_cases && data.use_cases.length) {
-            html += '<div class="mb-4">';
-            html += '<h6 class="text-primary"><i class="fa fa-lightbulb me-2"></i>Use Cases</h6>';
+            html += '<h6 class="text-primary"><i class="fa fa-tooth me-2"></i>Recommended Procedures</h6>';
             html += '<ul class="list-unstyled">';
-            data.use_cases.forEach(function(useCase) {
-                html += '<li><i class="fa fa-arrow-right text-info me-2"></i>' + useCase + '</li>';
+            data.recommended_procedures.forEach(function(procedure) {
+                html += '<li><i class="fa fa-arrow-right text-info me-2"></i>' + procedure + '</li>';
             });
             html += '</ul></div>';
         }
         
-        // Competitive Advantages
-        if (data.competitive_advantages && data.competitive_advantages.length) {
+        // Material Specifications
+        if (data.material_specifications && data.material_specifications.length) {
             html += '<div class="mb-4">';
-            html += '<h6 class="text-primary"><i class="fa fa-trophy me-2"></i>Competitive Advantages</h6>';
+            html += '<h6 class="text-primary"><i class="fa fa-cog me-2"></i>Material Specifications</h6>';
             html += '<ul class="list-unstyled">';
-            data.competitive_advantages.forEach(function(advantage) {
+            data.material_specifications.forEach(function(spec) {
+                html += '<li><i class="fa fa-info-circle text-primary me-2"></i>' + spec + '</li>';
+            });
+            html += '</ul></div>';
+        }
+        
+        // Performance Characteristics
+        if (data.performance_characteristics && data.performance_characteristics.length) {
+            html += '<div class="mb-4">';
+            html += '<h6 class="text-primary"><i class="fa fa-tachometer-alt me-2"></i>Performance Characteristics</h6>';
+            html += '<ul class="list-unstyled">';
+            data.performance_characteristics.forEach(function(perf) {
+                html += '<li><i class="fa fa-chart-line text-success me-2"></i>' + perf + '</li>';
+            });
+            html += '</ul></div>';
+        }
+        
+        // Compatibility Notes
+        if (data.compatibility_notes && data.compatibility_notes.length) {
+            html += '<div class="mb-4">';
+            html += '<h6 class="text-primary"><i class="fa fa-puzzle-piece me-2"></i>Compatibility & Usage</h6>';
+            html += '<ul class="list-unstyled">';
+            data.compatibility_notes.forEach(function(note) {
+                html += '<li><i class="fa fa-wrench text-warning me-2"></i>' + note + '</li>';
+            });
+            html += '</ul></div>';
+        }
+        
+        // Clinical Advantages
+        if (data.clinical_advantages && data.clinical_advantages.length) {
+            html += '<div class="mb-4">';
+            html += '<h6 class="text-primary"><i class="fa fa-trophy me-2"></i>Clinical Advantages</h6>';
+            html += '<ul class="list-unstyled">';
+            data.clinical_advantages.forEach(function(advantage) {
                 html += '<li><i class="fa fa-plus text-success me-2"></i>' + advantage + '</li>';
-            });
-            html += '</ul></div>';
-        }
-        
-        // Recommendations
-        if (data.recommendations && data.recommendations.length) {
-            html += '<div class="mb-4">';
-            html += '<h6 class="text-primary"><i class="fa fa-compass me-2"></i>Recommendations</h6>';
-            html += '<ul class="list-unstyled">';
-            data.recommendations.forEach(function(rec) {
-                html += '<li><i class="fa fa-thumbs-up text-warning me-2"></i>' + rec + '</li>';
-            });
-            html += '</ul></div>';
-        }
-        
-        // Marketing Angles
-        if (data.marketing_angles && data.marketing_angles.length) {
-            html += '<div class="mb-4">';
-            html += '<h6 class="text-primary"><i class="fa fa-megaphone me-2"></i>Marketing Angles</h6>';
-            html += '<ul class="list-unstyled">';
-            data.marketing_angles.forEach(function(angle) {
-                html += '<li><i class="fa fa-bullhorn text-primary me-2"></i>' + angle + '</li>';
             });
             html += '</ul></div>';
         }
@@ -299,10 +309,11 @@ const AIInsightsWidget = publicWidget.Widget.extend({
         }
         
         $content.html(html);
+        $('#insights-error').hide();
     },
     
     /**
-     * Show no insights message
+     * Show no insights message with generate button
      */
     _showNoInsights: function () {
         var html = `
@@ -316,6 +327,7 @@ const AIInsightsWidget = publicWidget.Widget.extend({
         `;
         
         $('#insights-content').html(html);
+        $('#insights-error').hide();
     },
     
     /**

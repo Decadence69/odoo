@@ -6,8 +6,7 @@
             <div class="ai-insights-container mt-2">
                 <button type="button" 
                         class="btn btn-sm btn-outline-primary ai-insights-btn" 
-                        t-att-data-product-id="product.id"
-                        onclick="return false;">
+                        t-att-data-product-id="product.id">
                     <i class="oi oi-search"></i>
                     AI Insights
                 </button>

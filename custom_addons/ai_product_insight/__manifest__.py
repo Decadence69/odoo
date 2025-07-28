@@ -13,11 +13,11 @@
     ],
     'assets': {
         'web.assets_backend': [
-            # 'ai_product_insight/static/src/css/ai_insights.css',
+            'ai_product_insight/static/src/css/ai_insights.css',
         ],
         'web.assets_frontend': [
             'ai_product_insight/static/src/js/ai_insights.js',
-            # 'ai_product_insight/static/src/css/ai_insights.css',
+            'ai_product_insight/static/src/css/ai_insights.css',
         ],
     },
     'installable': True,
