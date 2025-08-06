@@ -1,0 +1,29 @@
+.dental-ai-widget {
+    padding: 20px;
+    max-width: 800px;
+}
+
+.dental-ai-widget .query-input {
+    min-width: 400px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.dental-ai-widget .ai-response {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.dental-ai-widget .ai-loading {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.dental-ai-widget .ai-sources {
+    font-size: 0.85em;
+    color: #6c757d;
+}

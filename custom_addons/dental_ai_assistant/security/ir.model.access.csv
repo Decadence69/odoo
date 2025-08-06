@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_dental_ai_assistant_user,dental.ai.assistant.user,model_dental_ai_assistant,base.group_user,1,1,1,1
+access_dental_ai_config_manager,dental.ai.config.manager,model_dental_ai_config,base.group_system,1,1,1,1
