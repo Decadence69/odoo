@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 from sentence_transformers import SentenceTransformer
 import chromadb
-from chromadb.config import Settings
 import google.generativeai as genai
 
 class DentalRAGSystem:
@@ -22,15 +21,33 @@ class DentalRAGSystem:
         self.persist_directory = persist_directory
         self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
         
-        # Initialize Gemini
+        # Initialize Gemini with updated model name
         genai.configure(api_key=api_key)
-        self.gemini_model = genai.GenerativeModel('gemini-pro')
         
-        # Initialize ChromaDB
-        self.client = chromadb.Client(Settings(
-            chroma_db_impl="duckdb+parquet",
-            persist_directory=persist_directory
-        ))
+        # Try different available model names
+        model_names = [
+            'gemini-1.5-flash',
+            'gemini-1.5-pro', 
+            'gemini-1.0-pro'
+        ]
+        
+        self.gemini_model = None
+        for model_name in model_names:
+            try:
+                self.gemini_model = genai.GenerativeModel(model_name)
+                # Test the model
+                test_response = self.gemini_model.generate_content("Test")
+                print(f"Successfully initialized Gemini model: {model_name}")
+                break
+            except Exception as e:
+                print(f"Failed to initialize {model_name}: {str(e)}")
+                continue
+        
+        if not self.gemini_model:
+            raise Exception("Could not initialize any Gemini model. Please check your API key.")
+        
+        # Initialize ChromaDB with new API
+        self.client = chromadb.PersistentClient(path=persist_directory)
         
         self.collection = None
     

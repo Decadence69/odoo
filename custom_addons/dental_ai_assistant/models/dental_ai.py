@@ -220,17 +220,48 @@ class DentalAIConfiguration(models.TransientModel):
         try:
             import google.generativeai as genai
             genai.configure(api_key=self.gemini_api_key)
-            model = genai.GenerativeModel('gemini-pro')
-            response = model.generate_content("Hello, this is a test.")
             
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': _('Success'),
-                    'message': _('Gemini API connection successful'),
-                    'type': 'success',
+            # Try different model names that are currently available
+            model_names = [
+                'gemini-1.5-flash',
+                'gemini-1.5-pro', 
+                'gemini-1.0-pro',
+                'models/gemini-1.5-flash',
+                'models/gemini-1.5-pro'
+            ]
+            
+            success = False
+            working_model = None
+            
+            for model_name in model_names:
+                try:
+                    model = genai.GenerativeModel(model_name)
+                    response = model.generate_content("Hello, this is a test.")
+                    working_model = model_name
+                    success = True
+                    break
+                except Exception as model_error:
+                    _logger.info(f"Model {model_name} failed: {str(model_error)}")
+                    continue
+            
+            if success:
+                return {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': _('Success'),
+                        'message': _('Gemini API connection successful with model: %s') % working_model,
+                        'type': 'success',
+                    }
                 }
-            }
+            else:
+                # List available models for debugging
+                try:
+                    available_models = genai.list_models()
+                    model_list = [model.name for model in available_models if 'generateContent' in model.supported_generation_methods]
+                    raise UserError(_("No working model found. Available models: %s") % ', '.join(model_list[:5]))
+                except Exception as list_error:
+                    raise UserError(_("API connection failed. Please check your API key and try again."))
+                    
         except Exception as e:
             raise UserError(_("API connection failed: %s") % str(e))
