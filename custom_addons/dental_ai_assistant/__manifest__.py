@@ -7,12 +7,15 @@
     },
     'data': [
         'views/dental_ai_views.xml',
+        'views/dental_ai_website_templates.xml',
         'security/ir.model.access.csv',
     ],
     'assets': {
         'web.assets_backend': [
+            'dental_ai_assistant/static/src/js/dental_ai_chat.js',
             'dental_ai_assistant/static/src/js/dental_ai_widget.js',
             'dental_ai_assistant/static/src/css/dental_ai.css',
+            
         ],
     },
     'installable': True,

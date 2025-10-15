@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Product listing page (shop) -->
+    <template id="product_item_reference" inherit_id="website_sale.products_item" name="Product Item with Reference">
+        <xpath expr="//h6[@class='o_wsale_products_item_title mb-2 text-break']/a" position="before">
+            <span t-if="product.default_code" class="text-muted me-1">
+                [<t t-esc="product.default_code"/>]
+            </span>
+        </xpath>
+    </template>
+
+    <template id="product_page_reference" inherit_id="website_sale.product" name="Product Page with Reference">
+        <xpath expr="//h1[@itemprop='name']" position="replace">
+            <h1 itemprop="name">
+                <span t-if="product.default_code" class="text-muted me-2">[<span t-out="product.default_code"/>]</span>
+                <span t-out="product.name"/>
+            </h1>
+        </xpath>
+    </template>
+</odoo>

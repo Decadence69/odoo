@@ -6,7 +6,8 @@ class UserInventoryLine(models.Model):
     _order = 'sequence'
 
     user_id = fields.Many2one('res.users', string="User", required=True)
-    product_id = fields.Many2one('product.product', string="Product")
+    company_id = fields.Many2one('res.company', default=lambda self: self.env.company, index=True)
+    product_id = fields.Many2one('product.product', check_company=True, string="Product")  # ensures product matches company or is shared
     custom_name = fields.Char(string="Custom Item Name")
     is_custom = fields.Boolean(string="Custom Entry", default=False)
     current_qty = fields.Integer(string="Current Stock", default=0)

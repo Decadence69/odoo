@@ -1,0 +1,15 @@
+<odoo>
+  <!-- Portal users can only see their own lines and only for their allowed companies (or shared/False) -->
+  <record id="rule_user_inventory_own_company" model="ir.rule">
+    <field name="name">User Inventory: own &amp; company</field>
+    <field name="model_id" ref="model_user_inventory_line"/>
+    <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+    <field name="domain_force">
+      ['&amp;',
+        ('user_id', '=', user.id),
+        '|', ('company_id', '=', False),
+             ('company_id', 'in', user.company_ids.ids)
+      ]
+    </field>
+  </record>
+</odoo>

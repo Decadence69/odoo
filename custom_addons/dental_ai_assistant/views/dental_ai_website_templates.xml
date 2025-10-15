@@ -1,0 +1,18 @@
+<odoo>
+  <template id="dental_ai_button_only_on_shop" inherit_id="website.layout" priority="40">
+    <xpath expr="//main[@id='wrap'] | //div[@id='wrapwrap']" position="inside">
+      <t t-if="request and request.httprequest and request.httprequest.path and request.httprequest.path.startswith('/shop')">
+        <div class="container" style="position:sticky; top:0; z-index:10; background: var(--o-color-0, #fff); padding-top:.75rem;">
+          <div class="d-flex justify-content-end mb-2">
+            <button class="btn btn-primary"
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#dentalAiChatModal">
+              Chat with Dental AI
+            </button>
+          </div>
+        </div>
+      </t>
+    </xpath>
+  </template>
+</odoo>

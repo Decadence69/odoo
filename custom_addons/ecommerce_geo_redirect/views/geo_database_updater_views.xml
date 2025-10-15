@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Form View -->
+    <record id="view_geo_db_updater_form" model="ir.ui.view">
+        <field name="name">geo.db.updater.form</field>
+        <field name="model">geo.db.updater</field>
+        <field name="arch" type="xml">
+            <form string="GeoLite2 Database Updater">
+                <header>
+                    <button name="action_manual_update" 
+                            string="Update Now" 
+                            type="object" 
+                            class="oe_highlight"
+                            invisible="status == 'running'"/>
+                    <field name="status" widget="statusbar" 
+                           statusbar_visible="pending,running,success"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Configuration">
+                            <field name="db_path"/>
+                            <field name="license_key" password="True"/>
+                        </group>
+                        <group string="Status">
+                            <field name="last_update" readonly="1"/>
+                            <field name="next_update" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Error Details" invisible="not error_message">
+                        <field name="error_message" nolabel="1" readonly="1"/>
+                    </group>
+                    <div class="alert alert-info" role="alert">
+                        <h4>How to get a MaxMind License Key:</h4>
+                        <ol>
+                            <li>Go to <a href="https://www.maxmind.com/en/geolite2/signup" target="_blank">MaxMind GeoLite2 Signup</a></li>
+                            <li>Create a free account</li>
+                            <li>Generate a license key</li>
+                            <li>Paste the license key above</li>
+                        </ol>
+                        <p><strong>Note:</strong> The database will be automatically updated every 2 months.</p>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree View -->
+    <record id="view_geo_db_updater_tree" model="ir.ui.view">
+        <field name="name">geo.db.updater.list</field>
+        <field name="model">geo.db.updater</field>
+        <field name="arch" type="xml">
+            <list string="Database Updates">
+                <field name="name"/>
+                <field name="last_update"/>
+                <field name="next_update"/>
+                <field name="status" decoration-success="status == 'success'" 
+                       decoration-danger="status == 'failed'"
+                       decoration-warning="status == 'running'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_geo_db_updater" model="ir.actions.act_window">
+        <field name="name">Database Updater</field>
+        <field name="res_model">geo.db.updater</field>
+        <field name="view_mode">form,list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configure GeoLite2 Database Auto-Update
+            </p>
+            <p>
+                Set up automatic updates for the GeoLite2 database.
+                The database will be updated every 2 months automatically.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_geo_db_updater"
+              name="Database Updater"
+              parent="menu_geo_redirect_root"
+              action="action_geo_db_updater"
+              sequence="20"/>
+
+    <!-- Cron Job - Fixed for Odoo 18 -->
+    <record id="ir_cron_update_geolite2" model="ir.cron">
+        <field name="name">GeoLite2: Update Database</field>
+        <field name="model_id" ref="model_geo_db_updater"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_update_database()</field>
+        <field name="interval_number">2</field>
+        <field name="interval_type">months</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

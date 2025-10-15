@@ -27,3 +27,62 @@
     font-size: 0.85em;
     color: #6c757d;
 }
+
+/* Floating chat button */
+.dental-ai-chat-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 24px;
+  z-index: 1040; /* above page elements, below modal backdrop */
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  border: none;
+  background: #0d6efd;
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(0,0,0,.2);
+}
+.dental-ai-chat-btn:hover { filter: brightness(1.05); }
+
+/* Chat area */
+.dental-ai-chat-window {
+  border: 1px solid #e9ecef;
+  border-radius: .5rem;
+  min-height: 260px;
+  max-height: 50vh;
+  overflow: auto;
+  padding: 12px;
+  background: #fafafa;
+}
+.dental-ai-input-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: .5rem;
+  margin-top: .75rem;
+}
+
+/* Messages */
+.dental-ai-msg { margin-bottom: .75rem; display: flex; }
+.dental-ai-msg.from-user { justify-content: flex-end; }
+.dental-ai-msg.from-ai { justify-content: flex-start; }
+
+.dental-ai-msg .bubble {
+  max-width: 90%;
+  padding: .6rem .75rem;
+  border-radius: .75rem;
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 6px rgba(0,0,0,.06);
+  line-height: 1.35;
+}
+.dental-ai-msg.from-user .bubble {
+  background: #e8f1ff;
+  border-color: #cfe2ff;
+}
+.dental-ai-msg .bubble.error {
+  background: #fff5f5;
+  border-color: #ffd6d6;
+}
+
+.ai-content p { margin-bottom: .5rem; }
+.ai-sources { margin-top: .35rem; font-size: .85rem; color: #6c757d; }

@@ -16,7 +16,6 @@ const AIInsightsWidget = publicWidget.Widget.extend({
      * Initialize the widget
      */
     start: function () {
-        console.log('AIInsightsWidget started for element:', this.$el);
         return this._super.apply(this, arguments);
     },
     

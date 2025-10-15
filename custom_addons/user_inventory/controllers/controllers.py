@@ -47,19 +47,31 @@ class PortalInventory(http.Controller):
         # Load updated inventory lines
         updated_inventory = inventory_model.search([('user_id', '=', user.id)], order='sequence, id')
 
-        # _logger.info("RENDERING INVENTORY LINES")
-        # for inv in updated_inventory:
-        #     _logger.info("Line ID: %s | is_custom: %s | Product: %s | Custom Name: %s", inv.id, inv.is_custom, inv.product_id.name if inv.product_id else None, inv.custom_name)
-        
+        # Split into two buckets for the template
+        official_inventory = updated_inventory.filtered(lambda l: bool(l.product_id))
+        custom_inventory   = updated_inventory.filtered(lambda l: (l.is_custom or not l.product_id))
+
+        # Reorder banner/flag should consider only product-linked items
         needs_reorder = bool(
-            updated_inventory
-            .filtered(lambda l: not l.is_custom and l.current_qty < (l.target_qty or 0))
+            official_inventory.filtered(lambda l: l.current_qty < (l.target_qty or 0))
         )
+
         return request.render('user_inventory.portal_inventory_template', {
-            'inventory':      updated_inventory,
-            'product_options': product_options,
-            'needs_reorder':  needs_reorder,
+            # keep original var for backward-compat if your template still uses it anywhere
+            'inventory':          updated_inventory,
+
+            # new vars you’ll use to render two separate tables
+            'official_inventory': official_inventory,
+            'custom_inventory':   custom_inventory,
+
+            'product_options':    product_options,
+            'needs_reorder':      needs_reorder,
+
+            # handy helpers if you want simple conditionals in the template
+            'has_official':       bool(official_inventory),
+            'has_custom':         bool(custom_inventory),
         })
+
     
     @http.route(['/my/inventory/update'], type='http', auth='user', methods=['POST'], website=True, csrf=True)
     def portal_inventory_update(self, **post):
@@ -87,36 +99,48 @@ class PortalInventory(http.Controller):
     def sync_inventory_from_order(self, order_id, **post):
         user = request.env.user
         order = request.env['sale.order'].sudo().browse(order_id)
-        inventory_model = request.env['user.inventory.line'].sudo()
 
-        if order.partner_id.id != user.partner_id.id or order.state not in ['sale', 'done']:
+        # Basic guards
+        if not order.exists() or order.partner_id.id != user.partner_id.id or order.state not in ['sale', 'done']:
             return request.redirect('/my/orders')
 
+        # ✅ Idempotency guard: if already synced, just go to inventory
+        if order.portal_inventory_synced:
+            return request.redirect('/my/inventory')
+
+        inventory_model = request.env['user.inventory.line'].sudo()
+
+        # Perform sync
         for line in order.order_line:
             product = line.product_id
             if product.type == 'service':
                 continue
-            pid = product.id
+
             ordered_qty = line.product_uom_qty
+            if not ordered_qty:
+                continue
 
             inventory_line = inventory_model.search([
                 ('user_id', '=', user.id),
-                ('product_id', '=', pid)
+                ('product_id', '=', product.id),
             ], limit=1)
 
             if inventory_line:
-                if ordered_qty > 0:
-                    inventory_line.write({
-                        'current_qty': inventory_line.current_qty + ordered_qty,
-                    })
+                inventory_line.write({
+                    'current_qty': inventory_line.current_qty + ordered_qty,
+                })
             else:
                 inventory_model.create({
                     'user_id': user.id,
-                    'product_id': pid,
+                    'product_id': product.id,
                     'current_qty': ordered_qty,
                 })
 
-        return request.redirect(f'/my/inventory')
+        # ✅ Mark as synced so it can’t be applied again
+        order.write({'portal_inventory_synced': True})
+
+        # Redirect to inventory (or back to the order page if you prefer)
+        return request.redirect('/my/inventory')
 
     @http.route(['/my/inventory/add_custom'], type='http', auth='user', methods=['POST'], website=True, csrf=True)
     def add_custom_inventory(self, **post):
@@ -179,90 +203,107 @@ class PortalInventory(http.Controller):
     def reorder_from_inventory(self, **post):
         _logger.info("REORDER endpoint hit: %s", post)
 
-        line_id = int(post.get('line_id', 0))
-        inventory_line = request.env['user.inventory.line'].sudo().browse(line_id)
-
-        if not inventory_line or inventory_line.is_custom:
-            _logger.warning("Reorder skipped: invalid or custom line.")
+        line_id = int(post.get('line_id') or 0)
+        if not line_id:
             return request.redirect('/shop/cart')
 
-        # Step 1: Extract SKU (e.g., [CONS_123])
-        display_name = inventory_line.product_id.display_name or ''
-        match = re.search(r'\[(.*?)\]', display_name)
-        if not match:
-            _logger.warning("Could not extract SKU from product name: %s", display_name)
+        website = request.website.sudo()
+        company = website.company_id
+
+        # Use company-aware proxies (no env(...) call)
+        Line    = request.env['user.inventory.line'].sudo().with_context(allowed_company_ids=[company.id])
+        Product = request.env['product.product'  ].sudo().with_context(allowed_company_ids=[company.id])
+        SOL     = request.env['sale.order.line'  ].sudo().with_context(allowed_company_ids=[company.id])
+
+        line = Line.browse(line_id)
+        if not line or line.is_custom or not line.product_id:
+            _logger.warning("Reorder skipped: invalid/custom line.")
             return request.redirect('/shop/cart')
 
-        sku = match.group(1)
-        _logger.info("Extracted SKU: %s", sku)
-
-        # Step 2: Lookup product using default_code
-        product = request.env['product.product'].sudo().search([
-            ('default_code', '=', sku)
-        ], limit=1)
-
+        # Extract SKU [CODE] or fall back to the line.product_id
+        display_name = line.product_id.display_name or ''
+        m = re.search(r'\[(.*?)\]', display_name)
+        product = False
+        if m:
+            sku = m.group(1)
+            _logger.info("Extracted SKU: %s", sku)
+            product = Product.search([
+                ('default_code', '=', sku),
+                '|', ('company_id', '=', False), ('company_id', '=', company.id),
+            ], limit=1)
         if not product:
-            _logger.warning("No matching product for SKU: %s", sku)
+            product = line.product_id  # fallback
+
+        # Basic guards
+        if (not product) or (not product.sale_ok) or (product.type == 'service') or (not product.active):
+            _logger.warning("Reorder skipped: product not found/saleable/service/archived.")
             return request.redirect('/shop/cart')
 
-        # Step 3: Compute reorder qty
-        qty_to_add = inventory_line.target_qty - inventory_line.current_qty
+        qty_to_add = (line.target_qty or 0) - (line.current_qty or 0)
         if qty_to_add <= 0:
             _logger.info("No reorder needed for line %s", line_id)
             return request.redirect('/shop/cart')
 
-        # Step 4: Add to cart
-        order = request.website.sale_get_order(force_create=True)
-        order_line = request.env['sale.order.line'].sudo().search([
-            ('order_id', '=', order.id),
-            ('product_id', '=', product.id)
-        ], limit=1)
+        # Get/create cart *in this website company*
+        order = website.with_context(allowed_company_ids=[company.id]).sale_get_order(force_create=True).sudo()
+        if order.company_id != company:
+            order = order.with_company(company)
+            order.write({'company_id': company.id})
 
-        if order_line:
-            order_line.product_uom_qty += qty_to_add
-            _logger.info("Updated existing order line for product: %s", product.name)
+        # Align order parties to the commercial partner (no writes on partner record)
+        commercial = request.env.user.partner_id.commercial_partner_id.sudo()
+        vals = {}
+        if order.partner_id != commercial:         vals['partner_id'] = commercial.id
+        if order.partner_invoice_id != commercial: vals['partner_invoice_id'] = commercial.id
+        if order.partner_shipping_id != commercial:vals['partner_shipping_id'] = commercial.id
+        if vals: order.write(vals)
+
+        # Upsert line
+        existing = SOL.search([('order_id', '=', order.id), ('product_id', '=', product.id)], limit=1)
+        if existing:
+            existing.product_uom_qty += qty_to_add
+            _logger.info("Updated existing SOL for %s (+%s)", product.display_name, qty_to_add)
         else:
-            request.website.sale_get_order(force_create=True)._cart_update(
-                product_id=product.id,
-                add_qty=qty_to_add,
-                set_qty=False
-            )
-            _logger.info("Created new order line for product: %s", product.name)
+            order._cart_update(product_id=product.id, add_qty=qty_to_add, set_qty=False)
+            _logger.info("Created new SOL for %s (+%s)", product.display_name, qty_to_add)
 
         return request.redirect('/my/inventory')
-    
+
     @http.route(['/my/inventory/reorder_all'], type='http', auth='user', methods=['POST'], website=True, csrf=True)
     def reorder_all(self, **post):
+        website = request.website.sudo()
+        company = website.company_id
+
+        Line = request.env['user.inventory.line'].sudo().with_context(allowed_company_ids=[company.id])
+        SOL  = request.env['sale.order.line'  ].sudo().with_context(allowed_company_ids=[company.id])
+
         user = request.env.user
-        InventoryLine = request.env['user.inventory.line'].sudo()
+        lines = Line.search([('user_id', '=', user.id), ('is_custom', '=', False)])
+        to_reorder = lines.filtered(lambda l: (l.current_qty or 0) < (l.target_qty or 0) and l.product_id and l.product_id.sale_ok and l.product_id.active and l.product_id.type != 'service')
+        if not to_reorder:
+            return request.redirect('/shop/cart')
 
-        # 1) fetch all non-custom lines for this user
-        all_lines = InventoryLine.search([
-            ('user_id',   '=', user.id),
-            ('is_custom', '=', False),
-        ])
-        # 2) filter those where current < target
-        to_reorder = all_lines.filtered(lambda l: l.current_qty < (l.target_qty or 0))
+        order = website.with_context(allowed_company_ids=[company.id]).sale_get_order(force_create=True).sudo()
+        if order.company_id != company:
+            order = order.with_company(company)
+            order.write({'company_id': company.id})
 
-        # 3) get or create the website order
-        order = request.website.sale_get_order(force_create=True)
+        commercial = user.partner_id.commercial_partner_id.sudo()
+        vals = {}
+        if order.partner_id != commercial:         vals['partner_id'] = commercial.id
+        if order.partner_invoice_id != commercial: vals['partner_invoice_id'] = commercial.id
+        if order.partner_shipping_id != commercial:vals['partner_shipping_id'] = commercial.id
+        if vals: order.write(vals)
 
-        # 4) loop & top-up each line
-        for line in to_reorder:
-            qty_to_add = line.target_qty - line.current_qty
-            if qty_to_add <= 0:
+        for l in to_reorder:
+            add_qty = (l.target_qty or 0) - (l.current_qty or 0)
+            if add_qty <= 0:
                 continue
-
-            # if already in cart, bump qty; else create new
-            existing = request.env['sale.order.line'].sudo().search([
-                ('order_id',   '=', order.id),
-                ('product_id', '=', line.product_id.id),
-            ], limit=1)
+            existing = SOL.search([('order_id', '=', order.id), ('product_id', '=', l.product_id.id)], limit=1)
             if existing:
-                existing.product_uom_qty += qty_to_add
+                existing.product_uom_qty += add_qty
             else:
-                order._cart_update(product_id=line.product_id.id, add_qty=qty_to_add)
-
+                order._cart_update(product_id=l.product_id.id, add_qty=add_qty)
         return request.redirect('/shop/cart')
 
 

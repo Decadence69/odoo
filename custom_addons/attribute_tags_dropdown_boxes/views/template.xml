@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Custom styles for dropdown filters -->
+        <template id="assets_frontend_dropdown_filters" inherit_id="web.assets_frontend">
+            <xpath expr="." position="inside">
+                <link rel="stylesheet" type="text/scss" href="/dropdown_filters/static/src/css/dropdown_filters.css"/>
+            </xpath>
+        </template>
+    </data>
+</odoo>

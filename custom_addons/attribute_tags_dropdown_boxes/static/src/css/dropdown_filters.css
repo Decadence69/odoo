@@ -1,0 +1,91 @@
+/* Dropdown filter custom styles */
+.filter-dropdown-container .dropdown-toggle {
+    background-color: white !important;
+    border: 1px solid #dee2e6 !important;
+    color: #212529 !important;
+    font-weight: normal !important;
+    text-align: left !important;
+}
+
+.filter-dropdown-container .dropdown-toggle::after {
+    margin-left: auto !important;
+}
+
+.filter-dropdown-container .dropdown-toggle:hover,
+.filter-dropdown-container .dropdown-toggle:focus {
+    background-color: #f8f9fa !important;
+    border-color: #adb5bd !important;
+    box-shadow: 0 0 0 0.2rem rgba(0,0,0,.05) !important;
+}
+
+.filter-dropdown-container .dropdown-menu {
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: white;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.filter-dropdown-container .dropdown-item {
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+}
+
+.filter-dropdown-container .dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+.filter-dropdown-container .dropdown-item label {
+    cursor: pointer;
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.filter-dropdown-container .dropdown-item input[type="checkbox"] {
+    cursor: pointer;
+    margin-right: 0.5rem;
+}
+
+.filter-dropdown-container .dropdown-item.text-danger:hover {
+    background-color: #fff5f5;
+}
+
+.filter-dropdown-container .apply-filter-btn {
+    background-color: var(--bs-primary, #0d6efd);
+    color: white;
+    font-weight: 600;
+    text-align: center;
+    width: 100%;
+}
+
+.filter-dropdown-container .apply-filter-btn:hover {
+    background-color: var(--bs-primary-dark, #0b5ed7);
+    color: white;
+}
+
+.filter-dropdown-container .dropdown-divider {
+    margin: 0.5rem 0;
+}
+
+/* Prevent Bootstrap from closing dropdown on click */
+.filter-dropdown-container .dropdown-menu.show {
+    display: block;
+}
+
+/* Custom scrollbar for dropdown */
+.filter-dropdown-container .dropdown-menu::-webkit-scrollbar {
+    width: 8px;
+}
+
+.filter-dropdown-container .dropdown-menu::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.filter-dropdown-container .dropdown-menu::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.filter-dropdown-container .dropdown-menu::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

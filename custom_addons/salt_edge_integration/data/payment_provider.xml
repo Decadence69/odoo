@@ -1,9 +1,0 @@
-<odoo>
-  <record id="payment_provider_salt_edge" model="payment.provider">
-    <field name="name">Salt Edge</field>
-    <field name="code">salt_edge</field>
-    <field name="state">enabled</field>
-    <!-- REMOVE the problematic line -->
-    <!-- <field name="module_id" ref="_import_"/> -->
-  </record>
-</odoo>

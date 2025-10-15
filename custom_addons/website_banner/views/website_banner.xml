@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="form_view_promotion_offer" model="ir.ui.view">
+        <field name="name">promotion.setup.form</field>
+        <field name="model">promotion.setup</field>
+        <field name="arch" type="xml">
+            <form string="Promotion Offers">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="website_id"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="start_date" required="1"/>
+                            <field name="end_date" required="1"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Banner Content">
+                            <group>
+                                <field name="html_content" placeholder="Example: &lt;span style='font-weight:bold; font-size:18px;'&gt;4th Anniversary Sale!&lt;/span&gt;"/>
+                            </group>
+                            <div class="alert alert-info" role="alert" style="margin: 10px;">
+                                <strong>Example HTML for inline banner:</strong><br/>
+                                <code style="display: block; padding: 10px; background: #f0f0f0; margin-top: 10px;">
+                                    &lt;span style="font-weight:600; font-size:18px; margin-right: 10px;"&gt;4th Anniversary Sale!&lt;/span&gt;
+									&lt;span style="margin-right: 15px;"&gt;Get 15% off for users with an account!&lt;/span&gt;
+									&lt;a href="/shop" style="background:#ff0000; color:#fff; padding:8px 24px; border-radius:4px; text-decoration:none;"&gt;Sign Up&lt;/a&gt;
+                                </code>
+                            </div>
+                        </page>
+                        
+                        <page string="Background Styling">
+                            <group>
+                                <group>
+                                    <field name="background_image" widget="image" class="oe_avatar"/>
+                                    <p class="text-muted">Upload a background image for the banner</p>
+                                </group>
+                                <group>
+                                    <field name="bg_color" widget="color" 
+                                           placeholder="#0000ff or blue"
+                                           help="Background color (used if no image is uploaded)"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Legacy Fields">
+                            <group>
+                                <group>
+                                    <field name="text_to_display" string="Text to display"/>
+                                    <field name="url"/>
+                                    <field name="text_color" placeholder="Enter Color Code or Name"/>
+                                </group>
+                                <group>
+                                    <field name="btn_color" placeholder="Enter Color Code or Name"/>
+                                    <field name="btn_txt_color" placeholder="Enter Color Code or Name"/>
+                                </group>
+                            </group>
+                            <div class="alert alert-warning" role="alert" style="margin: 10px;">
+                                <strong>Note:</strong> These fields are deprecated. Please use the "Banner Content" tab with custom HTML instead.
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="list_view_promotion_offer" model="ir.ui.view">
+        <field name="name">promotion.setup.list</field>
+        <field name="model">promotion.setup</field>
+        <field name="arch" type="xml">
+            <list string="Promotion Offers">
+                <field name="name"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="website_id"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_promo_offers" model="ir.actions.act_window">
+        <field name="name">Promotion Banners</field>
+        <field name="res_model">promotion.setup</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="list_view_promotion_offer"/>
+        <field name="help">Create and manage promotional banners for your website. Banners will appear between the header and page content.</field>
+    </record>
+
+    <!-- Promotion setup menu -->
+    <menuitem id="menu_promo_offers_settings" 
+              parent="website.menu_website_global_configuration" 
+              name="Promotion Banners" 
+              action="action_promo_offers" 
+              sequence="5"/>
+
+</odoo>

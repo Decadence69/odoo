@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_geo_redirect_config_admin,geo.redirect.config.admin,model_geo_redirect_config,base.group_system,1,1,1,1
+access_geo_redirect_config_user,geo.redirect.config.user,model_geo_redirect_config,base.group_user,1,0,0,0
+access_geo_db_updater_admin,geo.db.updater.admin,model_geo_db_updater,base.group_system,1,1,1,1
+access_geo_db_updater_user,geo.db.updater.user,model_geo_db_updater,base.group_user,1,0,0,0

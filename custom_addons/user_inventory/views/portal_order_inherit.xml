@@ -1,17 +1,23 @@
 <odoo>
   <template id="user_inventory_sync_button_inline" inherit_id="sale.sale_order_portal_content">
-    
     <xpath expr="//div[@id='intro_row']/h2" position="replace">
       <div class="d-flex justify-content-between align-items-center flex-wrap w-100">
         <h2 class="m-0">
           <t t-out="sale_order.name"/>
         </h2>
-        
-        <t t-if="sale_order.state in ['sale', 'done']">
+
+        <!-- Show button only if sale/done and NOT yet synced -->
+        <t t-if="sale_order.state in ['sale', 'done'] and not sale_order.portal_inventory_synced">
           <a t-attf-href="/my/order/{{ sale_order.id }}/sync_inventory"
-             class="btn btn-outline-primary mt-2 mt-sm-0">
+             class="btn btn-outline-primary mt-2 mt-sm-0"
+             onclick="this.classList.add('disabled'); this.setAttribute('aria-disabled','true'); this.style.pointerEvents='none'; this.style.opacity='0.65'; this.innerText='Updating…';">
             Update Inventory with This Order
           </a>
+        </t>
+
+        <!-- After sync, show a badge (or nothing) -->
+        <t t-if="sale_order.portal_inventory_synced">
+          <span class="badge text-bg-success">Inventory Updated</span>
         </t>
       </div>
     </xpath>
