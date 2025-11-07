@@ -12,7 +12,6 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
     _pendingRequest: null, // Track active AJAX request
     _productCache: {}, // Cache product results
     _lastFetchTime: 0,
-    _productCountCache: {}, // Cache for product counts
 
     start: function () {
         this._super.apply(this, arguments);
@@ -202,27 +201,34 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
     },
 
     _convertFiltersToDropdowns: function () {
-        // CRITICAL FIX: Clear any existing dropdowns first to prevent duplication
-        this.$('.filter-dropdown-container').remove();
+        // MODIFIED: If dropdowns already created, only sync selections
+        if (this._dropdownsCreated) {
+            this._syncDropdownSelectionsFromURL();
+            this._ensureClearFiltersButton();
+            this._renderActiveFilterBadges();
+            return;
+        }
         
         this._convertTagsToDropdown();
         this._convertAttributesToDropdown();
         this._ensureClearFiltersButton();
-        this._renderActiveFilterBadges(); 
+        this._renderActiveFilterBadges();
+        
+        // NEW: Mark dropdowns as created
+        this._dropdownsCreated = true;
     },
 
     _convertTagsToDropdown: function () {
         const $tagsSection = this.$('#o_wsale_tags_option_inner').closest('.accordion-item');
         if (!$tagsSection.length) return;
 
+        // MODIFIED: Check if dropdown exists ANYWHERE in document
+        if ($('#tags_filter_dropdown').length > 0) {
+            return;
+        }
+
         const $checkboxes = $tagsSection.find('input[type="checkbox"][name="tags"]');
         if (!$checkboxes.length) return;
-
-        // CRITICAL FIX: Remove ALL existing tag dropdowns before creating new one
-        $tagsSection.find('#tags_filter_dropdown, .filter-dropdown-container').remove();
-        
-        // Also check if dropdown already exists and skip if it does
-        if ($tagsSection.find('#tags_filter_dropdown').length) return;
 
         const urlParams = new URLSearchParams(window.location.search);
         const selectedTags = urlParams.getAll('tags').filter(v => v);
@@ -283,9 +289,6 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
             $checkboxes, selectedTags, updateButtonText, applyFilters, clearFiltersNavigate
         );
 
-        // OPTIONAL: Fetch live product counts (disabled by default)
-        // this._fetchLiveProductCounts($dropdownMenu, 'tags');
-
         updateButtonText();
         $dropdownContainer.append($dropdownButton, $dropdownMenu);
 
@@ -299,7 +302,8 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
     },
 
     _convertAttributesToDropdown: function () {
-        const $attributeSections = this.$('.accordion-item').not(':has(.filter-dropdown-container[class*="attribute_dropdown_"])');
+        // MODIFIED: Check each section individually
+        const $attributeSections = this.$('.accordion-item');
 
         $attributeSections.each((index, section) => {
             const $section = $(section);
@@ -315,10 +319,10 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
 
             const dropdownClass = 'attribute_dropdown_' + attributeName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
             
-            // CRITICAL FIX: Remove existing dropdown before creating new one
-            $section.find('.' + dropdownClass).remove();
-            
-            if ($section.find('.' + dropdownClass).length) return;
+            // MODIFIED: Check if dropdown exists ANYWHERE in document
+            if ($('.' + dropdownClass).length > 0) {
+                return;
+            }
 
             const firstOptionValue = $checkboxes.first().val();
             const thisAttributeId = firstOptionValue ? firstOptionValue.split('-')[0] : null;
@@ -438,30 +442,13 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
             const itemValue = $checkbox.val();
             const isChecked = $checkbox.prop('checked') || selectedValues.includes(itemValue);
 
-            // Extract product count from the original label (if it exists)
-            // Odoo typically formats as "Option Name (5)" where 5 is the count
-            let productCount = '';
-            const countMatch = itemName.match(/\((\d+)\)$/);
-            if (countMatch) {
-                productCount = countMatch[1];
-            } else {
-                // Try to get count from data attribute if available
-                const dataCount = $checkbox.data('product-count') || $label.data('product-count');
-                if (dataCount) {
-                    productCount = dataCount;
-                }
-            }
-
-            // Clean item name (remove count if it was in the original)
-            const cleanItemName = itemName.replace(/\s*\(\d+\)$/, '').trim();
-
             const $item = $('<li>');
-            const $itemLabel = $('<label>', { class: 'dropdown-item mb-0 d-flex justify-content-between align-items-center' });
+            const $itemLabel = $('<label>', { class: 'dropdown-item mb-0' });
             const $newCheckbox = $('<input>', {
                 type: 'checkbox',
                 value: itemValue,
                 checked: isChecked,
-                class: 'form-check-input me-2'
+                class: 'form-check-input'
             });
 
             $newCheckbox.on('change', (e) => {
@@ -470,23 +457,7 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
                 this._debounce(() => applyFilters(), 250);
             });
 
-            // Create label text with checkbox
-            const $labelContent = $('<span>', { class: 'd-flex align-items-center flex-grow-1' });
-            $labelContent.append($newCheckbox);
-            $labelContent.append(document.createTextNode(cleanItemName));
-
-            $itemLabel.append($labelContent);
-
-            // Add product count badge if available
-            if (productCount) {
-                const $countBadge = $('<span>', {
-                    class: 'badge bg-secondary rounded-pill ms-2',
-                    text: productCount,
-                    style: 'font-size: 0.75rem; padding: 0.25rem 0.5rem;'
-                });
-                $itemLabel.append($countBadge);
-            }
-
+            $itemLabel.append($newCheckbox, document.createTextNode(' ' + itemName));
             $item.append($itemLabel);
             $dropdownMenu.append($item);
         });
@@ -605,7 +576,6 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
         const currentUrl = new URL(window.location.href);
         const targetUrl  = this._buildUrlString(currentUrl.pathname, newParams);
 
-        // Clear DOM cache before fetch
         this._domCache = {};
         const { $grid, $pager } = this._getProductsTargets();
 
@@ -652,20 +622,17 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
 
             if (options.pushState) history.pushState({}, '', targetUrl);
 
-            // Clear cache again after DOM changes
             this._domCache = {};
 
-            // Use requestAnimationFrame for smooth updates
+            // MODIFIED: Don't rebuild dropdowns, just sync them
             requestAnimationFrame(() => {
-                this._convertFiltersToDropdowns();
+                this._syncDropdownSelectionsFromURL();
                 this._ensureClearFiltersButton();
                 this._renderActiveFilterBadges();
                 this._renderMobileFilterBadges();
-                this._syncDropdownSelectionsFromURL();
                 this._syncOffcanvasFromURL();
                 this._reopenOffcanvasIfNeeded(wasOffcanvasOpen);
                 
-                // Defer expensive operation
                 requestAnimationFrame(() => {
                     this._hideEmptyFilterOptionsOptimized();
                 });
@@ -1084,7 +1051,21 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
      */
     _checkFilterHasProductsCached: function(params, callback) {
         const currentUrl = new URL(window.location.href);
-        const testUrl = this._buildUrlString(currentUrl.pathname, params);
+        
+        // CRITICAL FIX: Validate attribute_value format before building URL
+        const validatedParams = new URLSearchParams();
+        params.forEach((value, key) => {
+            if (key === 'attribute_value') {
+                // Ensure format is "id-value" with hyphen
+                if (value && typeof value === 'string' && value.includes('-')) {
+                    validatedParams.append(key, value);
+                }
+            } else if (value) {
+                validatedParams.append(key, value);
+            }
+        });
+        
+        const testUrl = this._buildUrlString(currentUrl.pathname, validatedParams);
         
         // Return cached result immediately
         if (this._filterCache[testUrl] !== undefined) {
@@ -1195,16 +1176,9 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
             this._observer.disconnect();
         }
         
-        // Cancel any pending request
-        if (this._pendingRequest) {
-            this._pendingRequest.abort();
-            this._pendingRequest = null;
-        }
-        
         // Clear caches
         this._filterCache = null;
         this._domCache = null;
-        this._productCache = null;
         
         // Remove event handlers
         $('#o_wsale_offcanvas').off('.mrbur_attr .mrbur_item .mrbur_label');
