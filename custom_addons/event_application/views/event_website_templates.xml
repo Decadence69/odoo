@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="event_index_topbar_custom" inherit_id="website_event.index_topbar">
+        
+        <!-- Remove the entire country filter section -->
+        <xpath expr="//div[contains(@class, 'o_wevent_index_topbar_filters')]" position="replace">
+            <div class="o_wevent_index_topbar_filters d-flex flex-wrap align-items-center gap-2">
+                <h2 class="my-0 me-3">Filters</h2>
+                
+                <!-- Date Filter (Simplified) -->
+                <div class="dropdown d-none d-lg-block">
+                    <a href="#" role="button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static">
+                        <t t-if="current_date == 'old'">Past Events</t>
+                        <t t-else="">Upcoming Events</t>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="/event?date=upcoming"
+                           t-attf-class="dropdown-item #{('active' if current_date != 'old' else '')}">
+                            Upcoming Events
+                        </a>
+                        <a href="/event?date=old"
+                           t-attf-class="dropdown-item #{('active' if current_date == 'old' else '')}">
+                            Past Events
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Type Filter -->
+                <div class="dropdown d-none d-lg-block" t-if="event_types">
+                    <a href="#" role="button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static">
+                        <t t-if="current_type">
+                            <t t-foreach="event_types" t-as="event_type">
+                                <t t-if="current_type == str(event_type.id)">
+                                    <t t-esc="event_type.name"/>
+                                </t>
+                            </t>
+                        </t>
+                        <t t-else="">Type</t>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="/event" 
+                           t-attf-class="dropdown-item #{('' if current_type else 'active')}">
+                            All Types
+                        </a>
+                        <t t-foreach="event_types" t-as="event_type">
+                            <a t-attf-href="/event?type={{event_type.id}}"
+                               t-attf-class="dropdown-item #{('active' if current_type == str(event_type.id) else '')}">
+                                <t t-esc="event_type.name"/>
+                            </a>
+                        </t>
+                    </div>
+                </div>
+                
+                <!-- Specialty Filter (CUSTOM) -->
+                <div class="dropdown d-none d-lg-block">
+                    <a href="#" role="button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static">
+                        <t t-if="current_specialty">
+                            <t t-esc="current_specialty"/>
+                        </t>
+                        <t t-else="">Specialty</t>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="/event" 
+                           t-attf-class="dropdown-item d-flex align-items-center justify-content-between #{'' if current_specialty else 'active'}">
+                            All Specialties
+                        </a>
+                        <t t-foreach="specialties or []" t-as="specialty">
+                            <a t-attf-href="/event?specialty={{specialty['id']}}" 
+                               t-attf-class="dropdown-item d-flex align-items-center justify-content-between #{('active' if current_specialty == specialty['name'] else '')}">
+                                <t t-esc="specialty['name']"/>
+                                <span class="badge text-bg-light ms-2">
+                                    <t t-esc="specialty.get('event_count', 0)"/>
+                                </span>
+                            </a>
+                        </t>
+                    </div>
+                </div>
+                
+                <!-- Case Filter (CUSTOM) -->
+                <div class="dropdown d-none d-lg-block">
+                    <a href="#" role="button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static">
+                        <t t-if="current_case">
+                            <t t-esc="current_case"/>
+                        </t>
+                        <t t-else="">Cases</t>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="/event" 
+                           t-attf-class="dropdown-item d-flex align-items-center justify-content-between #{'' if current_case else 'active'}">
+                            All Cases
+                        </a>
+                        <t t-foreach="cases or []" t-as="case_item">
+                            <a t-attf-href="/event?case={{case_item['id']}}" 
+                               t-attf-class="dropdown-item d-flex align-items-center justify-content-between #{('active' if current_case == case_item['name'] else '')}">
+                                <t t-esc="case_item['name']"/>
+                                <span class="badge text-bg-light ms-2">
+                                    <t t-esc="case_item.get('event_count', 0)"/>
+                                </span>
+                            </a>
+                        </t>
+                    </div>
+                </div>
+                
+                <!-- Country Filter (CUSTOM) -->
+                <div class="dropdown d-none d-lg-block">
+                    <a href="#" role="button" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static">
+                        <t t-if="current_country_custom">
+                            <t t-esc="current_country_custom"/>
+                        </t>
+                        <t t-else="">Country</t>
+                    </a>
+                    <div class="dropdown-menu" style="max-height: 400px; overflow-y: auto;">
+                        <a href="/event" 
+                           t-attf-class="dropdown-item d-flex align-items-center justify-content-between #{'' if current_country_custom else 'active'}">
+                            All Countries
+                        </a>
+                        <t t-foreach="custom_countries or []" t-as="country">
+                            <a t-attf-href="/event?country={{country['id']}}" 
+                               t-attf-class="dropdown-item d-flex align-items-center justify-content-between #{('active' if current_country_custom == country['name'] else '')}">
+                                <t t-esc="country['name']"/>
+                                <span class="badge text-bg-light ms-2">
+                                    <t t-esc="country.get('event_count', 0)"/>
+                                </span>
+                            </a>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

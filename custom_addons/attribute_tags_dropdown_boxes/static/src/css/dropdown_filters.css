@@ -89,3 +89,19 @@
 .filter-dropdown-container .dropdown-menu::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
+
+/* Footer stays in its lane */
+footer.o_footer, #footer { position: relative; z-index: 0; }
+
+/* Shop content sits above the footer and stays opaque */
+.container.oe_website_sale { background: #fff; } /* ensures no “bleed-through” */
+#products_grid,
+#o_wsale_products_grid,
+.o_wsale_products_grid_table_wrapper { position: relative; z-index: 1; }
+
+/* Fix mobile overflow caused by the always-on nowrap */
+.o_wsale_products_main_row.flex-nowrap { flex-wrap: wrap; }
+@media (min-width: 992px){ .o_wsale_products_main_row { flex-wrap: nowrap; } }
+
+/* Optional: keeps the white area tall even with 1 product */
+.o_wsale_products_grid_table_wrapper { min-height: calc(100vh - 180px); } /* adjust 180px if needed */

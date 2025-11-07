@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend the signup form to include job position dropdown for dentist specialty -->
+    <template id="dentist_specialty_signup" inherit_id="auth_signup.fields" name="Dentist Specialty Signup">
+        <xpath expr="//input[@name='name']" position="after">
+            <div class="mb-3 field-function">
+                <label for="function" class="form-label">Dentist Specialty</label>
+                <select name="function" id="function" class="form-select" required="required" t-att-value="function or ''">
+                    <option value="">-- Select Specialty --</option>
+                    <option value="Administrative Staff" t-att-selected="'selected' if function == 'Administrative Staff' else None">Administrative Staff</option>
+                    <option value="AI Dental Analyst" t-att-selected="'selected' if function == 'AI Dental Analyst' else None">AI Dental Analyst</option>
+                    <option value="Billing and Insurance Coordinator" t-att-selected="'selected' if function == 'Billing and Insurance Coordinator' else None">Billing and Insurance Coordinator</option>
+                    <option value="CAD/CAM Designer" t-att-selected="'selected' if function == 'CAD/CAM Designer' else None">CAD/CAM Designer</option>
+                    <option value="Ceramist" t-att-selected="'selected' if function == 'Ceramist' else None">Ceramist</option>
+                    <option value="Chairside Assistant" t-att-selected="'selected' if function == 'Chairside Assistant' else None">Chairside Assistant</option>
+                    <option value="Clinic Manager" t-att-selected="'selected' if function == 'Clinic Manager' else None">Clinic Manager</option>
+                    <option value="Clinic Owner" t-att-selected="'selected' if function == 'Clinic Owner' else None">Clinic Owner</option>
+                    <option value="Clinical Researcher" t-att-selected="'selected' if function == 'Clinical Researcher' else None">Clinical Researcher</option>
+                    <option value="Cosmetic Dentist" t-att-selected="'selected' if function == 'Cosmetic Dentist' else None">Cosmetic Dentist</option>
+                    <option value="Customer Service Representative" t-att-selected="'selected' if function == 'Customer Service Representative' else None">Customer Service Representative</option>
+                    <option value="Dental Assistant" t-att-selected="'selected' if function == 'Dental Assistant' else None">Dental Assistant</option>
+                    <option value="Dental Assistant Trainee" t-att-selected="'selected' if function == 'Dental Assistant Trainee' else None">Dental Assistant Trainee</option>
+                    <option value="Dental Consultant" t-att-selected="'selected' if function == 'Dental Consultant' else None">Dental Consultant</option>
+                    <option value="Dental Educator" t-att-selected="'selected' if function == 'Dental Educator' else None">Dental Educator</option>
+                    <option value="Dental Hygienist" t-att-selected="'selected' if function == 'Dental Hygienist' else None">Dental Hygienist</option>
+                    <option value="Dental Lab Technician" t-att-selected="'selected' if function == 'Dental Lab Technician' else None">Dental Lab Technician</option>
+                    <option value="Dental Nurse" t-att-selected="'selected' if function == 'Dental Nurse' else None">Dental Nurse</option>
+                    <option value="Dental Product Specialist" t-att-selected="'selected' if function == 'Dental Product Specialist' else None">Dental Product Specialist</option>
+                    <option value="Dental Sales Representative" t-att-selected="'selected' if function == 'Dental Sales Representative' else None">Dental Sales Representative</option>
+                    <option value="Dental Student" t-att-selected="'selected' if function == 'Dental Student' else None">Dental Student</option>
+                    <option value="Dental Technician" t-att-selected="'selected' if function == 'Dental Technician' else None">Dental Technician</option>
+                    <option value="Dental Technician Trainee" t-att-selected="'selected' if function == 'Dental Technician Trainee' else None">Dental Technician Trainee</option>
+                    <option value="Dental Therapist" t-att-selected="'selected' if function == 'Dental Therapist' else None">Dental Therapist</option>
+                    <option value="Digital Dentistry Specialist" t-att-selected="'selected' if function == 'Digital Dentistry Specialist' else None">Digital Dentistry Specialist</option>
+                    <option value="Endodontics" t-att-selected="'selected' if function == 'Endodontics' else None">Endodontics</option>
+                    <option value="Front Desk Staff" t-att-selected="'selected' if function == 'Front Desk Staff' else None">Front Desk Staff</option>
+                    <option value="General Dentist" t-att-selected="'selected' if function == 'General Dentist' else None">General Dentist</option>
+                    <option value="Geriatric Dentist" t-att-selected="'selected' if function == 'Geriatric Dentist' else None">Geriatric Dentist</option>
+                    <option value="Hospital Dentist" t-att-selected="'selected' if function == 'Hospital Dentist' else None">Hospital Dentist</option>
+                    <option value="Implant Coordinator" t-att-selected="'selected' if function == 'Implant Coordinator' else None">Implant Coordinator</option>
+                    <option value="Implantologist" t-att-selected="'selected' if function == 'Implantologist' else None">Implantologist</option>
+                    <option value="Intern Dentist" t-att-selected="'selected' if function == 'Intern Dentist' else None">Intern Dentist</option>
+                    <option value="Lab Manager" t-att-selected="'selected' if function == 'Lab Manager' else None">Lab Manager</option>
+                    <option value="Marketing Executive" t-att-selected="'selected' if function == 'Marketing Executive' else None">Marketing Executive</option>
+                    <option value="Operations Manager" t-att-selected="'selected' if function == 'Operations Manager' else None">Operations Manager</option>
+                    <option value="Oral and Maxillofacial Radiologist" t-att-selected="'selected' if function == 'Oral and Maxillofacial Radiologist' else None">Oral and Maxillofacial Radiologist</option>
+                    <option value="Oral and Maxillofacial Surgeon" t-att-selected="'selected' if function == 'Oral and Maxillofacial Surgeon' else None">Oral and Maxillofacial Surgeon</option>
+                    <option value="Oral Health Therapist" t-att-selected="'selected' if function == 'Oral Health Therapist' else None">Oral Health Therapist</option>
+                    <option value="Oral Medicine Specialist" t-att-selected="'selected' if function == 'Oral Medicine Specialist' else None">Oral Medicine Specialist</option>
+                    <option value="Oral Pathologist" t-att-selected="'selected' if function == 'Oral Pathologist' else None">Oral Pathologist</option>
+                    <option value="Orthodontics" t-att-selected="'selected' if function == 'Orthodontics' else None">Orthodontics</option>
+                    <option value="Oral Surgery Assistant" t-att-selected="'selected' if function == 'Oral Surgery Assistant' else None">Oral Surgery Assistant</option>
+                    <option value="Pediatric Dentist" t-att-selected="'selected' if function == 'Pediatric Dentist' else None">Pediatric Dentist</option>
+                    <option value="Periodontics" t-att-selected="'selected' if function == 'Periodontics' else None">Periodontics</option>
+                    <option value="Practice Manager" t-att-selected="'selected' if function == 'Practice Manager' else None">Practice Manager</option>
+                    <option value="Prosthodontics" t-att-selected="'selected' if function == 'Prosthodontics' else None">Prosthodontics</option>
+                    <option value="Prosthetic Technician" t-att-selected="'selected' if function == 'Prosthetic Technician' else None">Prosthetic Technician</option>
+                    <option value="Public Health Dentist" t-att-selected="'selected' if function == 'Public Health Dentist' else None">Public Health Dentist</option>
+                    <option value="Receptionist" t-att-selected="'selected' if function == 'Receptionist' else None">Receptionist</option>
+                    <option value="Sterilization Nurse" t-att-selected="'selected' if function == 'Sterilization Nurse' else None">Sterilization Nurse</option>
+                    <option value="Technician" t-att-selected="'selected' if function == 'Technician' else None">Technician</option>
+                    <option value="Treatment Coordinator" t-att-selected="'selected' if function == 'Treatment Coordinator' else None">Treatment Coordinator</option>
+                    <option value="Other" t-att-selected="'selected' if function == 'Other' else None">Other</option>
+                </select>
+
+            </div>
+        </xpath>
+    </template>
+</odoo>

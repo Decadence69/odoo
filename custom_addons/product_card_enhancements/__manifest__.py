@@ -16,6 +16,7 @@
     'assets': {
         'web.assets_frontend': [
             'product_card_enhancements/static/src/js/product_card_click.js',
+            'product_card_enhancements/static/src/js/shop_scroll_position.js',
         ],
     },
     'installable': True,

@@ -1,3 +1,4 @@
+# models/promotion_setup.py
 from odoo import models, fields
 
 class PromotionSetup(models.Model):
@@ -10,8 +11,8 @@ class PromotionSetup(models.Model):
     end_date = fields.Datetime(string='End Date', required=True)
     active = fields.Boolean(string='Active', default=True)
     
-    # New fields for custom HTML
-    html_content = fields.Html(
+    # Use Text field to store raw HTML without escaping
+    html_content = fields.Text(
         string='Banner HTML Content', 
         help='Write your custom HTML for the banner. Use inline styles for best results.'
     )
@@ -26,7 +27,7 @@ class PromotionSetup(models.Model):
         default='#f8f9fa'
     )
     
-    # Legacy fields (kept for backward compatibility)
+    # Legacy fields
     text_to_display = fields.Text(string='Text to Display')
     text_color = fields.Char(string='Text Color')
     btn_color = fields.Char(string='Button Color')
