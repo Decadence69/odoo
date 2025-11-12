@@ -1,5 +1,12 @@
 /** @odoo-module **/
 
+// Key optimizations:
+// 1. Batch all filter checks into a single request
+// 2. Server-side endpoint returns validity for ALL combinations
+// 3. Aggressive caching with smart invalidation
+// 4. Request deduplication
+// 5. Lazy evaluation only when needed
+
 import publicWidget from "@web/legacy/js/public/public_widget";
 
 publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
@@ -9,25 +16,31 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
     _filterCheckQueue: null,
     _isCheckingFilters: false,
     _domCache: {},
-    _pendingRequest: null, // Track active AJAX request
-    _productCache: {}, // Cache product results
+    _pendingRequest: null,
+    _productCache: {},
     _lastFetchTime: 0,
+    _abortController: null,
+    _batchValidationCache: null, // NEW: Cache for batch validation results
+    _pendingBatchRequest: null, // NEW: Prevent duplicate batch requests
 
     start: function () {
         this._super.apply(this, arguments);
 
-        // Safety check - ensure document is available
+        if (this._isEditMode()) {
+            console.log('[DropdownFilters] Edit mode detected, skipping initialization');
+            return;
+        }
+
         if (!document || !document.body) {
             console.warn('[DropdownFilters] Document not ready, deferring initialization');
             setTimeout(() => this.start(), 100);
             return;
         }
 
-        // Initialize caches
         this._filterCache = {};
+        this._batchValidationCache = {}; // NEW: Initialize batch cache
         this._domCache = {};
         
-        // Prevent desktop form submission
         const $form = this.$el.closest('form');
         if ($form.length) {
             $form.off('submit.mrbur').on('submit.mrbur', (e) => {
@@ -37,25 +50,38 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
             });
         }
 
+        // Priority 1: Critical UI setup (immediate)
         this._setupOffcanvasHandlers();
         this._setupFilterHandlers();
-        this._convertFiltersToDropdowns();
-        this._setupDOMObserver();
-        this._ensureClearFiltersButton();
-        this._renderActiveFilterBadges();
-        this._renderMobileFilterBadges();
         
-        // DEFER expensive operation to after initial render
+        // Priority 2: Dropdown conversion (slight delay for faster initial render)
         requestAnimationFrame(() => {
-            this._hideEmptyFilterOptionsOptimized();
+            this._convertFiltersToDropdowns();
+            this._ensureClearFiltersButton();
+            this._renderActiveFilterBadges();
         });
+        
+        // Priority 3: Non-critical features (deferred)
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(() => {
+                this._setupDOMObserver();
+                this._renderMobileFilterBadges();
+                this._setupLazyFilterCheck();
+                this._enableLazyLoadingForProducts();
+            }, { timeout: 1000 });
+        } else {
+            setTimeout(() => {
+                this._setupDOMObserver();
+                this._renderMobileFilterBadges();
+                this._setupLazyFilterCheck();
+                this._enableLazyLoadingForProducts();
+            }, 500);
+        }
 
-        // URL back/forward sync
         window.addEventListener('popstate', () => {
             this._handlePopState();
         });
 
-        // Debounced resize handler
         let resizeTimeout;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
@@ -65,7 +91,356 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
         });
     },
 
+    _isEditMode: function() {
+        return document.body.classList.contains('editor_enable') ||
+               document.body.classList.contains('editor_has_snippets') ||
+               typeof odoo !== 'undefined' && odoo.isReady === false ||
+               window.location.search.includes('enable_editor=1');
+    },
+
+    // ============================================
+    // NEW: BATCH VALIDATION METHODS
+    // ============================================
+
+    /**
+     * NEW: Single request to validate ALL filter combinations
+     * This replaces individual filter checks with one optimized call
+     */
+    _batchValidateFilters: function(callback) {
+        if (this._isEditMode()) return;
+        
+        if (this._pendingBatchRequest) {
+            console.log('[DropdownFilters] Batch validation already in progress');
+            return;
+        }
+
+        const currentUrl = new URL(window.location.href);
+        const currentState = this._getCurrentFilterState();
+        const cacheKey = this._getBatchCacheKey(currentState);
+
+        console.log('[DropdownFilters] Current filter state:', currentState);
+
+        if (this._batchValidationCache[cacheKey]) {
+            const cached = this._batchValidationCache[cacheKey];
+            if (Date.now() - cached.timestamp < 30000) {
+                console.log('[DropdownFilters] Using cached batch validation');
+                callback(cached.data);
+                return;
+            }
+        }
+
+        const allFilters = this._collectAllFilterOptions();
+        
+        if (allFilters.length === 0) {
+            console.warn('[DropdownFilters] No filters collected from DOM');
+            callback({});
+            return;
+        }
+
+        // ========== CRITICAL FIX: JSON-RPC FORMAT ==========
+        const payload = {
+            current_filters: currentState,
+            check_filters: allFilters,
+            path: currentUrl.pathname
+        };
+
+        console.log('[DropdownFilters] >>> ORIGINAL payload:', payload);
+
+        // Wrap in Odoo JSON-RPC structure
+        const jsonRpcPayload = {
+            jsonrpc: '2.0',
+            method: 'call',
+            params: payload,
+            id: Math.floor(Math.random() * 1000000)
+        };
+
+        console.log('[DropdownFilters] >>> WRAPPED JSON-RPC payload:', JSON.stringify(jsonRpcPayload, null, 2));
+        // ===================================================
+
+        this._pendingBatchRequest = true;
+
+        fetch('/shop/filters/batch_validate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(jsonRpcPayload)
+        })
+        .then(resp => {
+            console.log('[DropdownFilters] ========== RESPONSE RECEIVED ==========');
+            console.log('[DropdownFilters] Response status:', resp.status);
+            console.log('[DropdownFilters] Response headers:', resp.headers.get('content-type'));
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            return resp.json();
+        })
+        .then(data => {
+            console.log('[DropdownFilters] ========== PARSING RESPONSE ==========');
+            console.log('[DropdownFilters] Raw response:', JSON.stringify(data, null, 2));
+            
+            let validCombinations = {};
+            if (data.result && data.result.valid_combinations) {
+                validCombinations = data.result.valid_combinations;
+                console.log('[DropdownFilters] ✓ Found valid_combinations in data.result');
+            } else if (data.valid_combinations) {
+                validCombinations = data.valid_combinations;
+                console.log('[DropdownFilters] ✓ Found valid_combinations in data');
+            } else {
+                console.warn('[DropdownFilters] ✗ No valid_combinations found');
+                console.warn('[DropdownFilters] Available keys:', Object.keys(data));
+            }
+            
+            console.log('[DropdownFilters] Extracted validCombinations:', validCombinations);
+            console.log('[DropdownFilters] Keys count:', Object.keys(validCombinations || {}).length);
+            
+            this._batchValidationCache[cacheKey] = {
+                data: validCombinations,
+                timestamp: Date.now()
+            };
+            
+            const validCount = Object.keys(validCombinations || {}).length;
+            console.log(`[DropdownFilters] ========== FINAL RESULT ==========`);
+            console.log(`[DropdownFilters] Batch validated ${validCount} filter combinations`);
+            
+            if (validCount > 0) {
+                const examples = Object.entries(validCombinations).slice(0, 10);
+                console.log('[DropdownFilters] Example validations:', examples);
+            } else {
+                console.error('[DropdownFilters] ⚠️ WARNING: No combinations were validated!');
+            }
+            
+            callback(validCombinations);
+        })
+        .catch(err => {
+            console.error('[DropdownFilters] Batch validation failed:', err);
+            console.error('[DropdownFilters] Error details:', {
+                message: err.message,
+                stack: err.stack
+            });
+            callback({});
+        })
+        .finally(() => {
+            this._pendingBatchRequest = false;
+        });
+    },
+
+    /**
+     * NEW: Get current active filter state
+     */
+    _getCurrentFilterState: function() {
+        const url = new URL(window.location.href);
+        return {
+            tags: url.searchParams.getAll('tags').filter(Boolean),
+            attributes: url.searchParams.getAll('attribute_value').filter(Boolean),
+            search: url.searchParams.get('search') || '',
+            category: url.searchParams.get('category') || ''
+        };
+    },
+
+    /**
+     * NEW: Generate cache key for batch validation
+     */
+    _getBatchCacheKey: function(state) {
+        const sorted_tags = [...state.tags].sort().join(',');
+        const sorted_attrs = [...state.attributes].sort().join(',');
+        return `${state.category}|${state.search}|${sorted_tags}|${sorted_attrs}`;
+    },
+
+    /**
+     * NEW: Collect all available filter options from DOM
+     */
+    _collectAllFilterOptions: function() {
+        const filters = [];
+        const seen = new Set();
+
+        console.log('[DropdownFilters] Collecting filter options from DOM...');
+
+        // Collect from desktop filters
+        $('.products_attributes_filters input[type="checkbox"]').each((index, checkbox) => {
+            const $cb = $(checkbox);
+            const name = $cb.attr('name');
+            const value = $cb.val();
+            const key = `${name}:${value}`;
+            
+            if (!seen.has(key) && value && (name === 'tags' || name === 'attribute_value')) {
+                seen.add(key);
+                filters.push({ name, value });
+                console.log(`  Found desktop filter: ${name} = ${value}`);
+            }
+        });
+
+        // Collect from mobile offcanvas
+        $('#o_wsale_offcanvas input[type="checkbox"]').each((index, checkbox) => {
+            const $cb = $(checkbox);
+            const name = $cb.attr('name');
+            const value = $cb.val();
+            const key = `${name}:${value}`;
+            
+            if (!seen.has(key) && value && (name === 'tags' || name === 'attribute_value')) {
+                seen.add(key);
+                filters.push({ name, value });
+                console.log(`  Found offcanvas filter: ${name} = ${value}`);
+            }
+        });
+
+        // Collect from dropdowns
+        $('.filter-dropdown-container input[type="checkbox"]').each((index, checkbox) => {
+            const $cb = $(checkbox);
+            const value = $cb.val();
+            
+            // First try to get name from the checkbox itself
+            let name = $cb.attr('name');
+            
+            // If no name attribute, determine from container or value
+            if (!name) {
+                const $container = $cb.closest('.filter-dropdown-container');
+                
+                if ($container.attr('id') === 'tags_filter_dropdown' || 
+                    $container.attr('data-attribute-name') === 'Tags') {
+                    name = 'tags';
+                } else if (value && value.includes('-')) {
+                    name = 'attribute_value';
+                } else {
+                    // Skip if we can't determine the name
+                    console.warn(`  Skipping dropdown filter with no name: ${value}`);
+                    return;
+                }
+            }
+            
+            const key = `${name}:${value}`;
+            
+            if (!seen.has(key) && value) {
+                seen.add(key);
+                filters.push({ name, value });
+                console.log(`  Found dropdown filter: ${name} = ${value}`);
+            }
+        });
+
+        console.log(`[DropdownFilters] Collected ${filters.length} total filter options`);
+        return filters;
+    },
+
+    /**
+     * OPTIMIZED: Replace individual checks with batch validation
+     */
+    _hideEmptyFilterOptionsOptimized: function() {
+        if (this._isEditMode()) return;
+        
+        // Skip if already checking or checked recently
+        if (this._isCheckingFilters || (Date.now() - this._lastFilterCheck < 5000)) {
+            return;
+        }
+        
+        this._isCheckingFilters = true;
+        this._lastFilterCheck = Date.now();
+
+        // Single batch request replaces hundreds of individual requests
+        this._batchValidateFilters((validCombinations) => {
+            // Update UI based on validation results
+            this._applyFilterVisibility(validCombinations);
+            this._isCheckingFilters = false;
+            console.log('[DropdownFilters] Filter visibility updated from batch validation');
+        });
+    },
+
+    /**
+     * NEW: Apply visibility based on batch validation results
+     */
+    _applyFilterVisibility: function(validCombinations) {
+        console.log('[DropdownFilters] Applying filter visibility with', Object.keys(validCombinations).length, 'combinations');
+        
+        let hiddenCount = 0;
+        let shownCount = 0;
+        
+        // Desktop filters
+        $('.products_attributes_filters input[type="checkbox"]').each((index, checkbox) => {
+            const $cb = $(checkbox);
+            if ($cb.prop('checked')) return;
+            
+            const name = $cb.attr('name');
+            const value = $cb.val();
+            const key = `${name}:${value}`;
+            
+            const $parent = $cb.closest('.form-check, li, .list-group-item');
+            
+            if (validCombinations[key] === false) {
+                $parent.hide();
+                hiddenCount++;
+                console.log(`  Hiding desktop filter: ${key}`);
+            } else {
+                $parent.show();
+                shownCount++;
+            }
+        });
+
+        // Mobile offcanvas
+        $('#o_wsale_offcanvas input[type="checkbox"]').each((index, checkbox) => {
+            const $cb = $(checkbox);
+            if ($cb.prop('checked')) return;
+            
+            const name = $cb.attr('name');
+            const value = $cb.val();
+            const key = `${name}:${value}`;
+            
+            const $parent = $cb.closest('.form-check, li, .list-group-item');
+            
+            if (validCombinations[key] === false) {
+                $parent.hide();
+                hiddenCount++;
+                console.log(`  Hiding offcanvas filter: ${key}`);
+            } else {
+                $parent.show();
+                shownCount++;
+            }
+        });
+
+        // Dropdown filters
+        $('.filter-dropdown-container input[type="checkbox"]').each((index, checkbox) => {
+            const $cb = $(checkbox);
+            if ($cb.prop('checked')) return;
+            
+            const value = $cb.val();
+            const $container = $cb.closest('.filter-dropdown-container');
+            let name;
+            
+            if ($container.attr('id') === 'tags_filter_dropdown' || 
+                $container.attr('data-attribute-name') === 'Tags') {
+                name = 'tags';
+            } else if (value && value.includes('-')) {
+                name = 'attribute_value';
+            } else {
+                return;
+            }
+            
+            const key = `${name}:${value}`;
+            
+            const $parent = $cb.closest('li');
+            
+            if (validCombinations[key] === false) {
+                $parent.hide();
+                hiddenCount++;
+                console.log(`  Hiding dropdown filter: ${key}`);
+            } else {
+                $parent.show();
+                shownCount++;
+            }
+        });
+        
+        console.log(`[DropdownFilters] Visibility applied: ${hiddenCount} hidden, ${shownCount} shown`);
+    },
+
+    /**
+     * OPTIMIZED: Invalidate cache when filters change
+     */
+    _invalidateBatchCache: function() {
+        this._batchValidationCache = {};
+        console.log('[DropdownFilters] Batch validation cache invalidated');
+    },
+
     _handlePopState: function() {
+        if (this._isEditMode()) return;
+        
         if (typeof this._ajaxUpdateProducts === 'function') {
             const url = new URL(window.location.href);
             this._ajaxUpdateProducts(url.searchParams, { pushState: false, scrollIntoView: false });
@@ -75,44 +450,139 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
         this._renderMobileFilterBadges();
         this._syncDropdownSelectionsFromURL?.();
         this._syncOffcanvasFromURL();
+        
+        // NEW: Invalidate cache on navigation
+        this._invalidateBatchCache();
     },
 
     _setupOffcanvasHandlers: function() {
-        const $off = $('#o_wsale_offcanvas');
-        let isHidingOffcanvas = false;
+        if (this._isEditMode()) return;
+        
         const offEl = document.getElementById('o_wsale_offcanvas');
         
         if (offEl) {
-            offEl.addEventListener('hide.bs.offcanvas', () => { 
-                isHidingOffcanvas = true; 
-            }, { passive: true });
-
             offEl.addEventListener('hidden.bs.offcanvas', () => {
-                isHidingOffcanvas = false;
-                setTimeout(() => {
-                    document.body.classList.remove('offcanvas-backdrop', 'offcanvas-open', 'modal-open');
-                    
-                    if ((document.body.style.overflow === 'hidden' || 
-                        document.body.hasAttribute('data-bs-overflow')) &&
-                        !document.querySelector('.offcanvas.show') &&
-                        !document.querySelector('.modal.show')) {
-                        
-                        document.body.style.overflow = '';
-                        document.body.style.paddingRight = '';
-                        document.body.removeAttribute('data-bs-overflow');
-                        document.body.removeAttribute('data-bs-padding-right');
-                        document.documentElement.style.overflow = '';
-                        document.documentElement.style.paddingRight = '';
-                    }
-                }, 350);
+                this._forceCleanupStyles();
+                setTimeout(() => this._cleanupOffcanvasStyles(), 100);
             }, { passive: true });
+            
+            offEl.addEventListener('show.bs.offcanvas', () => {
+                this._forceCleanupStyles();
+            }, { passive: true });
+        }
+        
+        this._cleanupStylesInterval = setInterval(() => {
+            if (!document.querySelector('.offcanvas.show') && 
+                !document.querySelector('.modal.show')) {
+                this._forceCleanupStyles();
+            }
+        }, 500);
+    },
+    
+    _cleanupOffcanvasStyles: function() {
+        if (this._isEditMode()) return;
+        
+        setTimeout(() => {
+            document.body.classList.remove('offcanvas-backdrop', 'offcanvas-open', 'modal-open');
+            
+            document.querySelectorAll('.offcanvas-backdrop, .modal-backdrop').forEach(backdrop => {
+                backdrop.remove();
+            });
+            
+            if (!document.querySelector('.offcanvas.show') &&
+                !document.querySelector('.modal.show')) {
+                
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('padding-right');
+                document.body.removeAttribute('data-bs-overflow');
+                document.body.removeAttribute('data-bs-padding-right');
+                
+                document.documentElement.style.overflow = '';
+                document.documentElement.style.paddingRight = '';
+                document.documentElement.style.removeProperty('overflow');
+                document.documentElement.style.removeProperty('padding-right');
+                
+                const htmlStyle = document.documentElement.getAttribute('style');
+                if (htmlStyle) {
+                    let cleaned = htmlStyle
+                        .replace(/padding-right\s*:\s*[^;]+;?/gi, '')
+                        .replace(/overflow\s*:\s*[^;]+;?/gi, '')
+                        .trim();
+                    
+                    if (cleaned) {
+                        document.documentElement.setAttribute('style', cleaned);
+                    } else {
+                        document.documentElement.removeAttribute('style');
+                    }
+                }
+                
+                const bodyStyle = document.body.getAttribute('style');
+                if (bodyStyle) {
+                    let cleaned = bodyStyle
+                        .replace(/padding-right\s*:\s*[^;]+;?/gi, '')
+                        .replace(/overflow\s*:\s*[^;]+;?/gi, '')
+                        .trim();
+                    
+                    if (cleaned) {
+                        document.body.setAttribute('style', cleaned);
+                    } else {
+                        document.body.removeAttribute('style');
+                    }
+                }
+                
+                if (window.innerWidth < 992) {
+                    document.documentElement.style.overflowX = 'hidden';
+                    document.body.style.overflowX = 'hidden';
+                    document.body.style.width = '100%';
+                    document.body.style.maxWidth = '100vw';
+                }
+            }
+        }, 350);
+    },
+
+    _forceCleanupStyles: function() {
+        if (this._isEditMode()) return;
+        
+        document.body.classList.remove('offcanvas-backdrop', 'offcanvas-open', 'modal-open');
+        document.querySelectorAll('.offcanvas-backdrop, .modal-backdrop').forEach(el => el.remove());
+        
+        ['body', 'html'].forEach(selector => {
+            const el = selector === 'body' ? document.body : document.documentElement;
+            el.style.overflow = '';
+            el.style.paddingRight = '';
+            el.style.removeProperty('overflow');
+            el.style.removeProperty('padding-right');
+            
+            const style = el.getAttribute('style');
+            if (style) {
+                let cleaned = style
+                    .replace(/padding-right\s*:\s*[^;]+;?/gi, '')
+                    .replace(/overflow\s*:\s*[^;]+;?/gi, '')
+                    .trim();
+                
+                if (cleaned) {
+                    el.setAttribute('style', cleaned);
+                } else {
+                    el.removeAttribute('style');
+                }
+            }
+        });
+        
+        if (window.innerWidth < 992) {
+            document.documentElement.style.overflowX = 'hidden';
+            document.body.style.overflowX = 'hidden';
+            document.body.style.width = '100%';
+            document.body.style.maxWidth = '100vw';
         }
     },
 
     _setupFilterHandlers: function() {
+        if (this._isEditMode()) return;
+        
         const $off = $('#o_wsale_offcanvas');
         
-        // Remove 'for' attribute from labels
         $off.find('label.form-check-label[for]').each(function() {
             const $label = $(this);
             const forId = $label.attr('for');
@@ -125,8 +595,9 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
             }
         });
 
-        // Use event delegation for better performance
         $off.on('click.mrbur_item', '.list-group-item', (e) => {
+            if (this._isEditMode()) return;
+            
             const $item = $(e.currentTarget);
             const $checkbox = $item.find('input[type="checkbox"][name="attribute_value"]');
             
@@ -149,7 +620,6 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
             }
         });
 
-        // Debounced checkbox change handler
         $off.off('change.mrbur_attr').on('change.mrbur_attr', 
             'form.js_attributes input[type="checkbox"][name="attribute_value"]', 
             this._createDebouncedFilterHandler()
@@ -164,33 +634,49 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
 
     _createDebouncedFilterHandler: function() {
         let debounceTimer;
+        
         return (e) => {
+            if (this._isEditMode()) return;
+            
             e.preventDefault(); 
             e.stopPropagation();
 
-            if (this._filterCache) this._filterCache = {}; 
-
             const cb = e.currentTarget;
-            cb.toggleAttribute('checked', cb.checked);
+            const isChecked = cb.checked;
+            
+            cb.toggleAttribute('checked', isChecked);
 
-            const current = new URL(window.location.href);
-            const params = new URLSearchParams(current.search);
-            const val = cb.value;
-
-            const set = new Set(params.getAll('attribute_value'));
-            cb.checked ? set.add(val) : set.delete(val);
-
-            params.delete('attribute_value');
-            for (const v of set) params.append('attribute_value', v);
+            // NEW: Invalidate batch cache when filters change
+            this._invalidateBatchCache();
+            
+            if (this._filterCache) this._filterCache = {}; 
 
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
+                const $offcanvas = $('#o_wsale_offcanvas');
+                const selectedValues = [];
+                
+                $offcanvas.find('input[type="checkbox"][name="attribute_value"]:checked').each(function() {
+                    selectedValues.push($(this).val());
+                });
+                
+                const current = new URL(window.location.href);
+                const params = new URLSearchParams();
+                
+                current.searchParams.forEach((val, key) => {
+                    if (key !== 'attribute_value' && val) {
+                        params.append(key, val);
+                    }
+                });
+                
+                selectedValues.forEach((v) => params.append('attribute_value', v));
+
                 if (typeof this._ajaxUpdateProducts === 'function') {
                     this._ajaxUpdateProducts(params, { pushState: true, scrollIntoView: false });
                 } else {
                     window.history.pushState({}, '', `${location.pathname}?${params.toString()}`);
                 }
-            }, 150);
+            }, 300);
         };
     },
 
@@ -201,7 +687,8 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
     },
 
     _convertFiltersToDropdowns: function () {
-        // MODIFIED: If dropdowns already created, only sync selections
+        if (this._isEditMode()) return;
+        
         if (this._dropdownsCreated) {
             this._syncDropdownSelectionsFromURL();
             this._ensureClearFiltersButton();
@@ -214,15 +701,15 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
         this._ensureClearFiltersButton();
         this._renderActiveFilterBadges();
         
-        // NEW: Mark dropdowns as created
         this._dropdownsCreated = true;
     },
 
     _convertTagsToDropdown: function () {
+        if (this._isEditMode()) return;
+        
         const $tagsSection = this.$('#o_wsale_tags_option_inner').closest('.accordion-item');
         if (!$tagsSection.length) return;
 
-        // MODIFIED: Check if dropdown exists ANYWHERE in document
         if ($('#tags_filter_dropdown').length > 0) {
             return;
         }
@@ -272,6 +759,7 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
 
         const applyFilters = () => {
             const newParams = buildParamsFromMenu();
+            this._invalidateBatchCache(); // NEW: Invalidate on filter change
             this._ajaxUpdateProducts(newParams);
         };
 
@@ -281,6 +769,7 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
             currentUrl.searchParams.forEach((value, key) => {
                 if (key !== 'tags' && value) newParams.append(key, value);
             });
+            this._invalidateBatchCache(); // NEW: Invalidate on clear
             const targetUrl = this._buildUrlString(currentUrl.pathname, newParams);
             window.location.assign(targetUrl);
         };
@@ -302,7 +791,8 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
     },
 
     _convertAttributesToDropdown: function () {
-        // MODIFIED: Check each section individually
+        if (this._isEditMode()) return;
+        
         const $attributeSections = this.$('.accordion-item');
 
         $attributeSections.each((index, section) => {
@@ -319,7 +809,6 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
 
             const dropdownClass = 'attribute_dropdown_' + attributeName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
             
-            // MODIFIED: Check if dropdown exists ANYWHERE in document
             if ($('.' + dropdownClass).length > 0) {
                 return;
             }
@@ -378,6 +867,7 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
 
             const applyFilters = () => {
                 const newParams = buildParamsFromMenu();
+                this._invalidateBatchCache(); // NEW: Invalidate on filter change
                 this._ajaxUpdateProducts(newParams);
             };
 
@@ -395,6 +885,7 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
                     if (attrId !== thisAttributeId) newParams.append('attribute_value', attr);
                 });
 
+                this._invalidateBatchCache(); // NEW: Invalidate on clear
                 const targetUrl = this._buildUrlString(currentUrl.pathname, newParams);
                 window.location.assign(targetUrl);
             };
@@ -465,7 +956,6 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
         return $dropdownMenu;
     },
 
-    // CACHED DOM lookup for products grid
     _getProductsTargets: function () {
         if (this._domCache.grid && this._domCache.grid.length) {
             return { 
@@ -493,7 +983,7 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
 
     _showLoading: function () {
         const { $grid } = this._getProductsTargets();
-        if (!$grid.length) return;
+        if (!$grid || !$grid.length) return;
         
         if (!$grid.data('mrbur-pos-set')) {
             $grid.data('mrbur-orig-pos', $grid.css('position'));
@@ -511,7 +1001,7 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
 
     _hideLoading: function () {
         const { $grid } = this._getProductsTargets();
-        if (!$grid.length) return;
+        if (!$grid || !$grid.length) return;
         
         $grid.find('.mrbur-grid-loading').remove();
         const orig = $grid.data('mrbur-orig-pos');
@@ -538,8 +1028,10 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
     },
 
     _ensureClearFiltersButton: function () {
+        if (this._isEditMode()) return;
+        
         const $host = this.$el;
-        if (!$host.length) return;
+        if (!$host || !$host.length) return;
 
         let $btn = $host.find('#mrbur_clear_filters_btn');
         const activeCount = this._getActiveFilterCount();
@@ -559,6 +1051,7 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
             `);
             $host.prepend($btn);
             $btn.on('click', () => {
+                this._invalidateBatchCache(); // NEW: Invalidate on clear
                 window.location.assign(this._buildClearedUrl());
             });
         }
@@ -573,23 +1066,33 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
     },
 
     _ajaxUpdateProducts: function (newParams, options={ pushState: true, scrollIntoView: true }) {
+        if (this._isEditMode()) return;
+        
+        // Cancel any pending request
+        if (this._abortController) {
+            this._abortController.abort();
+        }
+        this._abortController = new AbortController();
+        
         const currentUrl = new URL(window.location.href);
         const targetUrl  = this._buildUrlString(currentUrl.pathname, newParams);
 
         this._domCache = {};
         const { $grid, $pager } = this._getProductsTargets();
 
-        if (!$grid.length) {
+        if (!$grid || !$grid.length) {
             console.warn('[DropdownFilters] Product grid NOT found.');
             return;
         }
 
-        const wasOffcanvasOpen = this._isOffcanvasOpen();
-        const shouldScroll = options.scrollIntoView && !wasOffcanvasOpen && window.innerWidth >= 992;
+        const shouldScroll = options.scrollIntoView && window.innerWidth >= 992;
 
         this._showLoading();
 
-        fetch(targetUrl, { credentials: 'same-origin' })
+        fetch(targetUrl, { 
+            credentials: 'same-origin',
+            signal: this._abortController.signal 
+        })
         .then(resp => {
             if (!resp.ok) throw new Error('HTTP ' + resp.status);
             return resp.text();
@@ -616,7 +1119,7 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
 
             if (newPagerEl) {
                 const $newPager = $(newPagerEl);
-                if ($pager.length) $pager.replaceWith($newPager);
+                if ($pager && $pager.length) $pager.replaceWith($newPager);
                 else $newGrid.after($newPager);
             }
 
@@ -624,19 +1127,54 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
 
             this._domCache = {};
 
-            // MODIFIED: Don't rebuild dropdowns, just sync them
-            requestAnimationFrame(() => {
-                this._syncDropdownSelectionsFromURL();
-                this._ensureClearFiltersButton();
-                this._renderActiveFilterBadges();
-                this._renderMobileFilterBadges();
-                this._syncOffcanvasFromURL();
-                this._reopenOffcanvasIfNeeded(wasOffcanvasOpen);
-                
+            // Use requestIdleCallback for non-critical updates
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(() => {
+                    this._syncDropdownSelectionsFromURL();
+                    this._ensureClearFiltersButton();
+                    this._renderActiveFilterBadges();
+                    this._renderMobileFilterBadges();
+                    this._syncOffcanvasFromURL();
+                    
+                    this._forceCleanupStyles();
+                    
+                    setTimeout(() => {
+                        this._cleanupOffcanvasStyles();
+                    }, 100);
+                    
+                    // Enable lazy loading for newly loaded products
+                    this._enableLazyLoadingForProducts();
+                    
+                    // Re-check filters after AJAX update using batch validation
+                    if (window.innerWidth < 992) {
+                        this._hideEmptyFilterOptionsOptimized();
+                    }
+                }, { timeout: 500 });
+            } else {
                 requestAnimationFrame(() => {
-                    this._hideEmptyFilterOptionsOptimized();
+                    this._syncDropdownSelectionsFromURL();
+                    this._ensureClearFiltersButton();
+                    this._renderActiveFilterBadges();
+                    this._renderMobileFilterBadges();
+                    this._syncOffcanvasFromURL();
+                    
+                    this._forceCleanupStyles();
+                    
+                    setTimeout(() => {
+                        this._cleanupOffcanvasStyles();
+                    }, 100);
+                    
+                    // Enable lazy loading for newly loaded products
+                    this._enableLazyLoadingForProducts();
+                    
+                    // Re-check filters after AJAX update using batch validation
+                    if (window.innerWidth < 992) {
+                        setTimeout(() => {
+                            this._hideEmptyFilterOptionsOptimized();
+                        }, 500);
+                    }
                 });
-            });
+            }
 
             if (shouldScroll) {
                 const $fresh = $(document).find('#products_grid, #o_wsale_products_grid').first();
@@ -644,14 +1182,23 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
             }
         })
         .catch(err => {
-            console.error('[DropdownFilters] AJAX update FAILED:', err);
+            if (err.name === 'AbortError') {
+                console.log('[DropdownFilters] Request cancelled');
+            } else {
+                console.error('[DropdownFilters] AJAX update FAILED:', err);
+            }
         })
-        .finally(() => this._hideLoading());
+        .finally(() => {
+            this._hideLoading();
+            this._abortController = null;
+        });
     },
 
     _renderActiveFilterBadges: function () {
+        if (this._isEditMode()) return;
+        
         const $host = this.$el;
-        if (!$host.length) return;
+        if (!$host || !$host.length) return;
 
         $host.find('#mrbur_active_badges_wrapper').remove();
 
@@ -682,6 +1229,7 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
                 params.delete(key);
                 allValues.forEach(v => params.append(key, v));
 
+                this._invalidateBatchCache(); // NEW: Invalidate on badge removal
                 this._ajaxUpdateProducts(params);
             });
 
@@ -689,13 +1237,15 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
         };
 
         tags.forEach((t) => {
-            const label = this.$(`input[name="tags"][value="${t}"]`).next('label').text().trim() || t;
-            $wrapper.append(makeBadge(label, t, 'tags'));
+            const $input = this.$(`input[name="tags"][value="${t}"]`);
+            const label = $input.length ? $input.next('label').text().trim() : t;
+            $wrapper.append(makeBadge(label || t, t, 'tags'));
         });
 
         attrs.forEach((a) => {
-            const label = this.$(`input[name="attribute_value"][value="${a}"]`).next('label').text().trim() || a;
-            $wrapper.append(makeBadge(label, a, 'attribute_value'));
+            const $input = this.$(`input[name="attribute_value"][value="${a}"]`);
+            const label = $input.length ? $input.next('label').text().trim() : a;
+            $wrapper.append(makeBadge(label || a, a, 'attribute_value'));
         });
 
         const $clearBtn = $host.find('#mrbur_clear_filters_btn');
@@ -703,6 +1253,8 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
     },
 
     _updateDropdownButtonTextFor: function ($container) {
+        if (!$container || !$container.length) return;
+        
         const $btn = $container.find('> button.dropdown-toggle').first();
         if (!$btn.length) return;
         
@@ -723,6 +1275,8 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
     },
 
     _syncDropdownSelectionsFromURL: function () {
+        if (this._isEditMode()) return;
+        
         const url = new URL(window.location.href);
         const activeTags = url.searchParams.getAll('tags').filter(Boolean);
         const activeAttrs = url.searchParams.getAll('attribute_value').filter(Boolean);
@@ -750,36 +1304,9 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
         });
     },
 
-    _isOffcanvasOpen: function () {
-        return !!(document && document.querySelector && document.querySelector('.offcanvas.show'));
-    },
-
-    _getOpenOffcanvas: function () {
-        return (document && document.querySelector) ? document.querySelector('.offcanvas.show') : null;
-    },
-
-    _reopenOffcanvasIfNeeded: function (wasOpen) {
-        if (!wasOpen || !document || !document.querySelector) return;
-        
-        const el = this._getOpenOffcanvas() || document.querySelector('#o_wsale_offcanvas, .offcanvas');
-        if (!el) return;
-        
-        try {
-            if (window.bootstrap && bootstrap.Offcanvas) {
-                const inst = bootstrap.Offcanvas.getOrCreateInstance(el, { backdrop: true, scroll: false });
-                inst.show();
-            } else {
-                el.classList.add('show');
-                if (document.body) {
-                    document.body.classList.add('offcanvas-backdrop');
-                }
-            }
-        } catch (e) {
-            console.error('Error reopening offcanvas:', e);
-        }
-    },
-
     _renderMobileFilterBadges: function () {
+        if (this._isEditMode()) return;
+        
         $('#mrbur_mobile_badges_wrapper').remove();
 
         if (window.innerWidth >= 992) return;
@@ -826,6 +1353,7 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
                 params.delete(key);
                 allValues.forEach(v => params.append(key, v));
 
+                this._invalidateBatchCache(); // NEW: Invalidate on badge removal
                 this._ajaxUpdateProducts(params, { pushState: true, scrollIntoView: false });
             });
 
@@ -890,223 +1418,67 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
         }
     },
 
-    /**
-     * OPTIMIZED: Hide empty filter options with intelligent batching
-     * This is the key performance improvement - reduces HTTP requests by 80%+
-     */
-    _hideEmptyFilterOptionsOptimized: function() {
-        if (!this._filterCache) {
-            this._filterCache = {};
-        }
-
-        const currentUrl = new URL(window.location.href);
-        const currentTags = currentUrl.searchParams.getAll('tags').filter(Boolean);
-        const currentAttrs = currentUrl.searchParams.getAll('attribute_value').filter(Boolean);
-
-        // Group filters by attribute for batch checking
-        const filterGroups = new Map();
+    _enableLazyLoadingForProducts: function() {
+        if (this._isEditMode()) return;
         
-        const collectFilters = ($checkboxes, location) => {
-            $checkboxes.each((index, checkbox) => {
-                const $checkbox = $(checkbox);
-                if ($checkbox.prop('checked')) return;
-                
-                const value = $checkbox.val();
-                const name = $checkbox.attr('name') || 'attribute_value';
-                
-                let attributeGroup = name;
-                if (name === 'attribute_value' && value.includes('-')) {
-                    attributeGroup = value.split('-')[0];
-                }
-                
-                if (!filterGroups.has(attributeGroup)) {
-                    filterGroups.set(attributeGroup, []);
-                }
-                
-                filterGroups.get(attributeGroup).push({
-                    $element: $checkbox,
-                    $parent: $checkbox.closest('.form-check, li, .list-group-item'),
-                    name: name,
-                    value: value,
-                    location: location
-                });
-            });
-        };
-
-        // Collect from all locations
-        collectFilters($('.products_attributes_filters input[type="checkbox"]'), 'desktop');
-        collectFilters($('#o_wsale_offcanvas input[type="checkbox"][name="attribute_value"], #o_wsale_offcanvas input[type="checkbox"][name="tags"]'), 'mobile');
+        const productImages = document.querySelectorAll(
+            '#products_grid img, ' +
+            '.o_wsale_products_grid img, ' +
+            '.oe_product img, ' +
+            '.o_wsale_product_grid_wrapper img'
+        );
         
-        $('.filter-dropdown-container input[type="checkbox"]').each((index, checkbox) => {
-            const $checkbox = $(checkbox);
-            if ($checkbox.prop('checked')) return;
-            
-            const value = $checkbox.val();
-            const name = value.includes('-') ? 'attribute_value' : 'tags';
-            
-            let attributeGroup = name;
-            if (name === 'attribute_value' && value.includes('-')) {
-                attributeGroup = value.split('-')[0];
+        productImages.forEach(img => {
+            if (!img.hasAttribute('loading')) {
+                img.setAttribute('loading', 'lazy');
             }
             
-            if (!filterGroups.has(attributeGroup)) {
-                filterGroups.set(attributeGroup, []);
+            if (!img.hasAttribute('decoding')) {
+                img.setAttribute('decoding', 'async');
             }
-            
-            filterGroups.get(attributeGroup).push({
-                $element: $checkbox,
-                $parent: $checkbox.closest('li'),
-                name: name,
-                value: value,
-                location: 'dropdown'
-            });
-        });
-
-        if (filterGroups.size === 0) return;
-
-        // OPTIMIZATION: Process groups sequentially with delays to avoid server overload
-        let groupsProcessed = 0;
-        const totalGroups = filterGroups.size;
-
-        filterGroups.forEach((filters, attributeGroup) => {
-            // CRITICAL: Add staggered delays between groups
-            setTimeout(() => {
-                this._checkFilterGroupBatch(filters, attributeGroup, currentUrl, () => {
-                    groupsProcessed++;
-                    if (groupsProcessed === totalGroups) {
-                        console.log('[DropdownFilters] All filter checks complete');
-                    }
-                });
-            }, groupsProcessed * 150); // 150ms delay between each group
         });
     },
 
-    /**
-     * OPTIMIZED: Check an entire filter group with intelligent caching
-     */
-    _checkFilterGroupBatch: function(filters, attributeGroup, currentUrl, onComplete) {
-        let checked = 0;
-        const total = filters.length;
-
-        // OPTIMIZATION: Limit concurrent requests per group
-        const batchSize = 3;
-        let currentIndex = 0;
-
-        const processBatch = () => {
-            if (currentIndex >= total) {
-                if (onComplete) onComplete();
-                return;
-            }
-
-            const batch = filters.slice(currentIndex, currentIndex + batchSize);
-            currentIndex += batchSize;
-
-            let batchCompleted = 0;
-
-            batch.forEach((filter) => {
-                const testParams = new URLSearchParams();
-                
-                // Keep other filter groups
-                currentUrl.searchParams.forEach((value, key) => {
-                    if (key === filter.name) {
-                        if (key === 'attribute_value') {
-                            const existingAttrId = value.split('-')[0];
-                            if (existingAttrId === attributeGroup) return;
-                        } else if (key === 'tags' && attributeGroup === 'tags') {
-                            return;
-                        }
-                    }
-                    testParams.append(key, value);
-                });
-                
-                testParams.append(filter.name, filter.value);
-                
-                this._checkFilterHasProductsCached(testParams, (hasProducts) => {
-                    checked++;
-                    batchCompleted++;
-                    
-                    if (!hasProducts) {
-                        filter.$parent.hide();
-                    } else {
-                        filter.$parent.show();
-                    }
-                    
-                    // Process next batch when current batch completes
-                    if (batchCompleted === batch.length) {
-                        if (currentIndex < total) {
-                            setTimeout(processBatch, 100); // Small delay between batches
-                        } else if (checked === total && onComplete) {
-                            onComplete();
-                        }
-                    }
-                });
-            });
-        };
-
-        processBatch();
-    },
-
-    /**
-     * OPTIMIZED: Cached filter check with better error handling
-     */
-    _checkFilterHasProductsCached: function(params, callback) {
-        const currentUrl = new URL(window.location.href);
-        
-        // CRITICAL FIX: Validate attribute_value format before building URL
-        const validatedParams = new URLSearchParams();
-        params.forEach((value, key) => {
-            if (key === 'attribute_value') {
-                // Ensure format is "id-value" with hyphen
-                if (value && typeof value === 'string' && value.includes('-')) {
-                    validatedParams.append(key, value);
-                }
-            } else if (value) {
-                validatedParams.append(key, value);
-            }
-        });
-        
-        const testUrl = this._buildUrlString(currentUrl.pathname, validatedParams);
-        
-        // Return cached result immediately
-        if (this._filterCache[testUrl] !== undefined) {
-            callback(this._filterCache[testUrl]);
+    _setupLazyFilterCheck: function() {
+        if (this._isEditMode()) {
             return;
         }
-        
-        // Fetch and cache
-        fetch(testUrl, { 
-            method: 'GET',
-            credentials: 'same-origin',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(resp => {
-            if (resp.status === 400) {
-                this._filterCache[testUrl] = false;
-                callback(false);
-                return null;
+
+        // For mobile offcanvas, check when offcanvas is opened
+        const offcanvasEl = document.getElementById('o_wsale_offcanvas');
+        if (offcanvasEl) {
+            offcanvasEl.addEventListener('shown.bs.offcanvas', () => {
+                if (!offcanvasEl.dataset.filtersChecked) {
+                    offcanvasEl.dataset.filtersChecked = 'true';
+                    this._hideEmptyFilterOptionsOptimized();
+                }
+            }, { once: true, passive: true });
+        }
+
+        // For desktop, use IntersectionObserver
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !entry.target.dataset.filterChecked) {
+                        entry.target.dataset.filterChecked = 'true';
+                        this._hideEmptyFilterOptionsOptimized();
+                        observer.disconnect();
+                    }
+                });
+            }, { rootMargin: '100px' });
+
+            const filterContainer = document.querySelector('.products_attributes_filters');
+            if (filterContainer) {
+                observer.observe(filterContainer);
             }
-            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-            return resp.text();
-        })
-        .then(html => {
-            if (html === null) return;
-            
-            // Quick check: look for product count or product elements
-            const hasProductCount = html.includes('oe_product') || 
-                                  html.includes('schema.org/Product') ||
-                                  html.includes('o_wsale_product_information');
-            
-            this._filterCache[testUrl] = hasProductCount;
-            callback(hasProductCount);
-        })
-        .catch(err => {
-            console.error('[DropdownFilters] Filter check error:', err);
-            this._filterCache[testUrl] = true; // Safe default
-            callback(true);
-        });
+        } else {
+            setTimeout(() => this._hideEmptyFilterOptionsOptimized(), 2000);
+        }
     },
 
     _syncOffcanvasFromURL: function () {
+        if (this._isEditMode()) return;
+        
         if (!document || !document.getElementById) return;
         
         const off = document.getElementById('o_wsale_offcanvas');
@@ -1116,17 +1488,22 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
         const activeTags  = url.searchParams.getAll('tags').filter(Boolean);
         const activeAttrs = url.searchParams.getAll('attribute_value').filter(Boolean);
 
-        off.querySelectorAll('input[type="checkbox"][name="tags"]').forEach((cb) => {
-            cb.checked = activeTags.includes(cb.value);
-        });
+        const isOffcanvasVisible = off.classList.contains('show');
+        
+        if (!isOffcanvasVisible) {
+            off.querySelectorAll('input[type="checkbox"][name="tags"]').forEach((cb) => {
+                cb.checked = activeTags.includes(cb.value);
+            });
 
-        off.querySelectorAll('input[type="checkbox"][name="attribute_value"]').forEach((cb) => {
-            cb.checked = activeAttrs.includes(cb.value);
-        });
+            off.querySelectorAll('input[type="checkbox"][name="attribute_value"]').forEach((cb) => {
+                cb.checked = activeAttrs.includes(cb.value);
+            });
+        }
     },
 
     _setupDOMObserver: function () {
-        // Safety check
+        if (this._isEditMode()) return;
+        
         if (!document || !document.body || !window.MutationObserver) {
             console.warn('[DropdownFilters] MutationObserver not available');
             return;
@@ -1136,11 +1513,13 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
         const self = this;
 
         this._observer = new MutationObserver(function(mutations) {
+            if (self._isEditMode()) return;
+            
             let shouldUpdate = false;
             
-            mutations.forEach(function(mutation) {
+            for (let mutation of mutations) {
                 if (mutation.addedNodes.length) {
-                    mutation.addedNodes.forEach(function(node) {
+                    for (let node of mutation.addedNodes) {
                         if (node.nodeType === 1) {
                             const $node = $(node);
                             if ($node.find('.products_attributes_filters').length || 
@@ -1148,26 +1527,35 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
                                 $node.find('#o_wsale_tags_option_inner').length || 
                                 $node.attr('id') === 'o_wsale_tags_option_inner') {
                                 shouldUpdate = true;
+                                break;
                             }
                         }
-                    });
+                    }
                 }
-            });
+                if (shouldUpdate) break;
+            }
 
             if (shouldUpdate) {
                 clearTimeout(ajaxTimeout);
                 ajaxTimeout = setTimeout(() => {
                     self._convertFiltersToDropdowns();
-                }, 200);
+                }, 500);
             }
         });
 
         const targetNode = document.querySelector('.products_attributes_filters');
         if (targetNode) {
-            this._observer.observe(targetNode, { childList: true, subtree: true });
+            this._observer.observe(targetNode, { 
+                childList: true, 
+                subtree: true 
+            });
         }
+        
         if (document.body) {
-            this._observer.observe(document.body, { childList: true, subtree: true });
+            this._observer.observe(document.body, { 
+                childList: true, 
+                subtree: false
+            });
         }
     },
 
@@ -1176,11 +1564,18 @@ publicWidget.registry.DropdownFilters = publicWidget.Widget.extend({
             this._observer.disconnect();
         }
         
-        // Clear caches
+        if (this._cleanupStylesInterval) {
+            clearInterval(this._cleanupStylesInterval);
+        }
+        
+        if (this._abortController) {
+            this._abortController.abort();
+        }
+        
         this._filterCache = null;
+        this._batchValidationCache = null; // NEW: Clean up batch cache
         this._domCache = null;
         
-        // Remove event handlers
         $('#o_wsale_offcanvas').off('.mrbur_attr .mrbur_item .mrbur_label');
         
         this._super.apply(this, arguments);

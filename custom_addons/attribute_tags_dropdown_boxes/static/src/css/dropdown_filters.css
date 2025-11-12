@@ -105,3 +105,79 @@ footer.o_footer, #footer { position: relative; z-index: 0; }
 
 /* Optional: keeps the white area tall even with 1 product */
 .o_wsale_products_grid_table_wrapper { min-height: calc(100vh - 180px); } /* adjust 180px if needed */
+
+/* Prevent horizontal scroll on mobile after filter changes */
+@media (max-width: 991.98px) {
+    html, body {
+        max-width: 100vw;
+        overflow-x: hidden !important;
+    }
+    
+    /* Ensure no elements cause horizontal overflow */
+    body.offcanvas-open,
+    body.modal-open {
+        overflow-x: hidden !important;
+    }
+    
+    /* Force clean state when offcanvas is hidden */
+    body:not(.offcanvas-open):not(.modal-open) {
+        padding-right: 0 !important;
+        overflow-x: hidden !important;
+    }
+    
+    html:not(:has(.offcanvas.show)):not(:has(.modal.show)) {
+        padding-right: 0 !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* Container fixes */
+    .container,
+    .container-fluid {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+}
+
+/* Additional safeguard for all screen sizes */
+html {
+    overflow-x: hidden;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+/* Ensure offcanvas doesn't leave artifacts */
+.offcanvas-backdrop {
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Clean transition when closing offcanvas */
+.offcanvas.hiding {
+    transform: translateX(-100%);
+}
+
+/* Capitalize just these two labels in the left sidebar */
+#products_grid_before .products_categories .o_categories_collapse_title b,
+#o_wsale_categories .nav > li:first-child > a {
+    text-transform: uppercase; /* use 'uppercase' if you want ALL CAPS */
+}
+
+/* If something overrides it, add !important */
+#products_grid_before .products_categories .o_categories_collapse_title b,
+#o_wsale_categories .nav > li:first-child > a {
+    text-transform: uppercase !important;
+}
+
+/* Anchor the sticky aside with an explicit top offset (match your header height) */
+#products_grid_before {
+  top: 80px; /* e.g. navbar height; adjust to your theme */
+}
+
+/* Make the rail's height = viewport minus that offset, and add bottom space */
+#products_grid_before .o_wsale_products_grid_before_rail {
+  height: calc(100dvh - 80px) !important;  /* use 100dvh for mobile-safe vh */
+  overflow-y: auto !important;
+  padding-bottom: 96px;                     /* ensures last dropdown is fully reachable */
+  scroll-padding-bottom: 96px;              /* helps keyboard focus not hide last item */
+}
