@@ -2,10 +2,12 @@
 <odoo>
     <!-- Extend the signup form to include job position dropdown for dentist specialty -->
     <template id="dentist_specialty_signup" inherit_id="auth_signup.fields" name="Dentist Specialty Signup">
-        <xpath expr="//input[@name='name']" position="after">
-            <div class="mb-3 field-function">
-                <label for="function" class="form-label">Dentist Specialty</label>
-                <select name="function" id="function" class="form-select" required="required" t-att-value="function or ''">
+        <xpath expr="//input[@name='name']/ancestor::div[contains(@class,'mb-3')][1]"
+           position="after">
+            <!-- Dentist Specialty field - will be hidden/shown by JavaScript -->
+            <div class="mb-3 field-function" id="dentist_specialty_field">
+                <label for="dentist_function" class="form-label">Dentist Specialty</label>
+                <select name="function" id="dentist_function" class="form-select form-select-sm" required="required" t-att-value="function or ''">
                     <option value="">-- Select Specialty --</option>
                     <option value="Administrative Staff" t-att-selected="'selected' if function == 'Administrative Staff' else None">Administrative Staff</option>
                     <option value="AI Dental Analyst" t-att-selected="'selected' if function == 'AI Dental Analyst' else None">AI Dental Analyst</option>
@@ -62,8 +64,113 @@
                     <option value="Treatment Coordinator" t-att-selected="'selected' if function == 'Treatment Coordinator' else None">Treatment Coordinator</option>
                     <option value="Other" t-att-selected="'selected' if function == 'Other' else None">Other</option>
                 </select>
-
             </div>
         </xpath>
+        <xpath expr="//div[contains(@class,'field-password')]" position="attributes">
+            <attribute name="class">mb-3 field-password</attribute>
+        </xpath>
+        <xpath expr="//input[@name='login']" position="attributes">
+            <attribute name="type">email</attribute>
+            <attribute name="placeholder">e.g. example@domain.com</attribute>
+            <attribute name="pattern">^[^@\s]+@[^@\s]+\.[^@\s]+$</attribute>
+            <attribute name="title">Please enter a valid email address</attribute>
+        </xpath>
+        <xpath expr="//label[@for='name']" position="attributes">
+            <attribute name="class">form-label</attribute>
+        </xpath>
+        <xpath expr="//label[@for='password']" position="attributes">
+            <attribute name="class">form-label</attribute>
+        </xpath>
+        <xpath expr="//label[@for='confirm_password']" position="attributes">
+            <attribute name="class">form-label</attribute>
+        </xpath>
     </template>
+    
+    <!-- Add JavaScript to show/hide dentist specialty field -->
+    <template id="dentist_specialty_signup_js" inherit_id="auth_signup.signup" name="Dentist Specialty JS">
+        <xpath expr="//form[contains(@class,'oe_signup_form')]" position="after">
+            <script type="text/javascript">
+                document.addEventListener('DOMContentLoaded', function() {
+                    var dentistField = document.getElementById('dentist_specialty_field');
+                    var dentistSelect = document.getElementById('dentist_function');
+                    var individualRadio = document.getElementById('individual_radio');
+                    var companyRadio = document.getElementById('company_radio');
+                    
+                    function toggleDentistField() {
+                        // Check which radio is actually checked
+                        var isCompany = companyRadio &amp;&amp; companyRadio.checked;
+                        var isIndividual = individualRadio &amp;&amp; individualRadio.checked;
+                        
+                        console.log('Toggle called - Company:', isCompany, 'Individual:', isIndividual);
+                        
+                        if (isCompany) {
+                            // Hide dentist specialty for company
+                            if (dentistField) {
+                                dentistField.style.display = 'none';
+                                // Remove required attribute when hidden
+                                if (dentistSelect) {
+                                    dentistSelect.removeAttribute('required');
+                                    dentistSelect.value = ''; // Clear value
+                                }
+                            }
+                            
+                            // Show dynamic company fields
+                            var companyFunctionField = document.querySelector('#dynamic_company_fields [data-field-name="function"]');
+                            if (companyFunctionField) {
+                                companyFunctionField.style.display = 'block';
+                            }
+                        } else {
+                            // Show dentist specialty for individual
+                            if (dentistField) {
+                                dentistField.style.display = 'block';
+                                // Add required attribute when shown
+                                if (dentistSelect) {
+                                    dentistSelect.setAttribute('required', 'required');
+                                }
+                            }
+                            
+                            // Hide dynamic company Job Position field for individuals
+                            var companyFunctionField = document.querySelector('#dynamic_company_fields [data-field-name="function"]');
+                            if (companyFunctionField) {
+                                companyFunctionField.style.display = 'none';
+                                // Clear the company function input
+                                var companyFunctionInput = companyFunctionField.querySelector('input[name="function"]');
+                                if (companyFunctionInput) {
+                                    companyFunctionInput.value = '';
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Small delay to ensure all other scripts have run
+                    setTimeout(function() {
+                        toggleDentistField();
+                    }, 100);
+                    
+                    // Add event listeners to radio buttons
+                    if (individualRadio) {
+                        individualRadio.addEventListener('change', function() {
+                            console.log('Individual selected');
+                            toggleDentistField();
+                        });
+                    }
+                    if (companyRadio) {
+                        companyRadio.addEventListener('change', function() {
+                            console.log('Company selected');
+                            toggleDentistField();
+                        });
+                    }
+                });
+            </script>
+        </xpath>
+    </template>
+    
+    <template id="mrbur_portal_signup_extras_redirect"
+            inherit_id="auth_signup.signup"
+            name="MRBUR: Signup redirect to /shop">
+        <!-- Insert hidden input anywhere inside the signup form -->
+        <xpath expr="//form[contains(@class,'oe_signup_form')]" position="inside">
+        <input type="hidden" name="redirect" value="/shop"/>
+        </xpath>
+  </template>
 </odoo>

@@ -4,15 +4,31 @@
     <template id="product_item_reference" inherit_id="website_sale.products_item" name="Product Item with Reference">
         <xpath expr="//h6[@class='o_wsale_products_item_title mb-2 text-break']/a" position="before">
             <span t-if="product.default_code" class="text-muted me-1">
-                [<t t-esc="product.default_code"/>]
+                <t t-esc="product.default_code"/>
             </span>
+        </xpath>
+    </template>
+
+    <!-- Add attributes below the title -->
+    <template id="product_item_attributes_description" inherit_id="website_sale.products_item" name="Product Attributes Description">
+        <xpath expr="//h6[@class='o_wsale_products_item_title mb-2 text-break']" position="after">
+            <div class="mb-2 text-muted small fst-italic">
+                <t t-set="diameter_line" t-value="product.valid_product_template_attribute_line_ids.filtered(lambda x: x.attribute_id.name == 'DIAMETER')"/>
+                <span t-if="diameter_line and diameter_line.product_template_value_ids">
+                    Diameter: <t t-esc="diameter_line.product_template_value_ids[0].name"/>mm
+                </span>
+                <t t-set="head_length_line" t-value="product.valid_product_template_attribute_line_ids.filtered(lambda x: x.attribute_id.name == 'HEAD LENGTH')"/>
+                <span t-if="head_length_line and head_length_line.product_template_value_ids">
+                    <br/>Head Length: <t t-esc="head_length_line.product_template_value_ids[0].name"/>mm
+                </span>
+            </div>
         </xpath>
     </template>
 
     <template id="product_page_reference" inherit_id="website_sale.product" name="Product Page with Reference">
         <xpath expr="//h1[@itemprop='name']" position="replace">
             <h1 itemprop="name">
-                <span t-if="product.default_code" class="text-muted me-2">[<span t-out="product.default_code"/>]</span>
+                <span t-if="product.default_code" class="text-muted me-2"><span t-out="product.default_code"/></span>
                 <span t-out="product.name"/>
             </h1>
         </xpath>

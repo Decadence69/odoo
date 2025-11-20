@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from odoo import http
 from odoo.http import request
 import json
@@ -13,39 +12,11 @@ class WebsiteSaleFilters(http.Controller):
     def batch_validate_filters(self, current_filters=None, check_filters=None, path=None, **kwargs):
         """
         Validates multiple filter combinations in a single request.
-        
-        Args:
-            current_filters: Dict with keys: tags, attributes, search, category
-            check_filters: List of dicts with 'name' and 'value' keys
-            path: Current URL path
-            
-        Returns:
-            Dict with 'valid_combinations' mapping "name:value" to True/False
         """
-        _logger.info("=" * 80)
-        _logger.info("BATCH VALIDATE FILTERS CALLED")
-        _logger.info("=" * 80)
-        
         try:
-            _logger.info(f"current_filters: {current_filters}")
-            _logger.info(f"check_filters: {check_filters}")
-            _logger.info(f"path: {path}")
-            _logger.info(f"kwargs: {kwargs}")
-            
-            # Simple test to make sure we can return data
-            test_result = {
-                'valid_combinations': {
-                    'test:123': True,
-                    'test:456': False
-                }
-            }
-            _logger.info(f"TEST: About to return {test_result}")
-            
             if not check_filters:
-                _logger.warning("No check_filters provided - returning empty")
+                _logger.warning("No check_filters provided")
                 return {'valid_combinations': {}}
-            
-            _logger.info(f"Processing {len(check_filters)} filters")
             
             current_filters = current_filters or {}
             current_tags = current_filters.get('tags', [])
@@ -53,113 +24,100 @@ class WebsiteSaleFilters(http.Controller):
             search_term = current_filters.get('search', '')
             category_id = current_filters.get('category', '')
             
-            _logger.info(f"Parsed - tags: {current_tags}, attrs: {current_attrs}")
-            
             # Get base domain for current context
             base_domain = self._get_base_domain(path, category_id, search_term)
-            _logger.info(f"Base domain: {base_domain}")
-            
-            # Count products with base domain
-            try:
-                base_count = request.env['product.template'].search_count(base_domain)
-                _logger.info(f"Base domain matches {base_count} products")
-            except Exception as e:
-                _logger.error(f"Error counting base products: {e}")
-                base_count = 0
             
             valid_combinations = {}
             
-            # Check each filter option
-            for idx, filter_item in enumerate(check_filters):
+            # Group filters by attribute to check within same attribute
+            filters_by_attribute = {}
+            tag_filters = []
+            
+            for filter_item in check_filters:
                 name = filter_item.get('name')
                 value = filter_item.get('value')
                 
-                _logger.info(f"[{idx+1}/{len(check_filters)}] Processing filter: name={name}, value={value}")
+                if not name or not value:
+                    continue
+                
+                if name == 'tags':
+                    tag_filters.append(value)
+                elif name == 'attribute_value' and '-' in str(value):
+                    attr_id = str(value).split('-')[0]
+                    if attr_id not in filters_by_attribute:
+                        filters_by_attribute[attr_id] = []
+                    filters_by_attribute[attr_id].append(value)
+            
+            # Check each filter option
+            for filter_item in check_filters:
+                name = filter_item.get('name')
+                value = filter_item.get('value')
                 
                 if not name or not value:
-                    _logger.warning(f"Skipping invalid filter: {filter_item}")
                     continue
                 
                 key = f"{name}:{value}"
                 
-                # Build test domain with this filter added
+                # Build test domain AS IF this filter is selected
                 test_domain = base_domain.copy()
                 
                 if name == 'tags':
-                    # OR logic within tags: add this tag to current tags
+                    # Test: What if we ADD this tag to current tags?
                     test_tags = list(current_tags) if current_tags else []
                     if value not in test_tags:
                         test_tags.append(value)
                     
                     if test_tags:
-                        # Convert to integers
-                        tag_ids = []
-                        for t in test_tags:
-                            try:
-                                tag_ids.append(int(t))
-                            except (ValueError, TypeError):
-                                _logger.warning(f"Invalid tag ID: {t}")
-                        
+                        tag_ids = [int(t) for t in test_tags if str(t).isdigit()]
                         if tag_ids:
-                            # Tags use OR logic within themselves
-                            tag_domain = [('public_categ_ids.id', 'in', tag_ids)]
-                            test_domain.extend(tag_domain)
-                            _logger.info(f"  Added tag domain: {tag_domain}")
+                            # Tags: OR logic (any tag matches)
+                            test_domain.append(('public_categ_ids.id', 'in', tag_ids))
                     
-                    # AND logic: apply current attribute filters
+                    # Apply current attribute filters (AND logic with tags)
                     if current_attrs:
                         attr_domain = self._build_attribute_domain(current_attrs)
                         test_domain.extend(attr_domain)
-                        _logger.info(f"  Added attribute domain: {attr_domain}")
                 
                 elif name == 'attribute_value':
-                    # Apply current tags (AND logic)
+                    # Apply current tags first (AND logic)
                     if current_tags:
-                        tag_ids = []
-                        for t in current_tags:
-                            try:
-                                tag_ids.append(int(t))
-                            except (ValueError, TypeError):
-                                _logger.warning(f"Invalid tag ID: {t}")
-                        
+                        tag_ids = [int(t) for t in current_tags if str(t).isdigit()]
                         if tag_ids:
-                            tag_domain = [('public_categ_ids.id', 'in', tag_ids)]
-                            test_domain.extend(tag_domain)
-                            _logger.info(f"  Added tag domain: {tag_domain}")
+                            test_domain.append(('public_categ_ids.id', 'in', tag_ids))
                     
-                    # OR logic within same attribute, AND logic between attributes
-                    test_attrs = list(current_attrs) if current_attrs else []
-                    if value not in test_attrs:
-                        test_attrs.append(value)
+                    # Check if selecting THIS value within its attribute group
+                    # while keeping OTHER attribute groups as-is
+                    if not value or '-' not in str(value):
+                        continue
+                    
+                    this_attr_id = str(value).split('-')[0]
+                    test_attrs = []
+                    
+                    # Keep all attributes from OTHER attribute groups
+                    for attr in current_attrs:
+                        if str(attr).split('-')[0] != this_attr_id:
+                            test_attrs.append(attr)
+                    
+                    # For THIS attribute group, ONLY include the value we're testing
+                    test_attrs.append(value)
                     
                     if test_attrs:
                         attr_domain = self._build_attribute_domain(test_attrs)
                         test_domain.extend(attr_domain)
-                        _logger.info(f"  Added attribute domain: {attr_domain}")
                 
-                # Log final test domain
-                _logger.info(f"  Final test domain: {test_domain}")
-                
-                # Check if any products match this combination
+                # Check if any products match
                 try:
                     product_count = request.env['product.template'].with_context(bin_size=True).search_count(test_domain)
                     valid_combinations[key] = product_count > 0
-                    _logger.info(f"  Result: {product_count} products -> valid={valid_combinations[key]}")
+                    
                 except Exception as e:
-                    _logger.error(f"  Error checking products for {key}: {str(e)}", exc_info=True)
-                    valid_combinations[key] = True  # Default to showing the filter on error
-                
-            _logger.info("=" * 80)
-            _logger.info(f"BATCH VALIDATE COMPLETE - Returning {len(valid_combinations)} results")
-            _logger.info(f"Results: {valid_combinations}")
-            _logger.info("=" * 80)
+                    _logger.error(f"Error checking {key}: {str(e)}")
+                    valid_combinations[key] = True  # Default to showing on error
             
             return {'valid_combinations': valid_combinations}
             
         except Exception as e:
-            _logger.error("=" * 80)
-            _logger.error(f"EXCEPTION in batch_validate_filters: {str(e)}", exc_info=True)
-            _logger.error("=" * 80)
+            _logger.error(f"Exception in batch_validate_filters: {str(e)}", exc_info=True)
             return {'valid_combinations': {}}
     
     def _get_base_domain(self, path, category_id, search_term):
@@ -217,15 +175,17 @@ class WebsiteSaleFilters(http.Controller):
         
         # Build domain with OR within same attribute, AND between attributes
         domain = []
+        
         for attr_id, value_ids in attrs_by_id.items():
             if len(value_ids) == 1:
                 # Single value for this attribute
                 domain.append(('attribute_line_ids.value_ids', 'in', value_ids))
             else:
                 # Multiple values for same attribute (OR logic)
-                # Add OR prefix for all values of this attribute
-                for _ in range(len(value_ids) - 1):
+                # Need to add OR operators before the conditions
+                for i in range(len(value_ids) - 1):
                     domain.append('|')
+                
                 for val_id in value_ids:
                     domain.append(('attribute_line_ids.value_ids', '=', val_id))
         

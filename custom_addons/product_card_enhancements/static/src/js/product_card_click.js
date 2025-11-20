@@ -13,8 +13,6 @@ publicWidget.registry.ProductCardClickable = publicWidget.Widget.extend({
     _makeProductCardsClickable: function () {
         const productForms = document.querySelectorAll('form[action^="/shop/cart/update"]');
         
-        console.log('Product card click script loaded - Found ' + productForms.length + ' product cards');
-        
         productForms.forEach(function(form) {
             const link = form.querySelector('.o_wsale_products_item_title a[href^="/shop/"]');
             

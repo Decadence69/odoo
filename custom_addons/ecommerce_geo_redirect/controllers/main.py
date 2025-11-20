@@ -1,3 +1,8 @@
+"""
+Geo Redirect Module - controllers/main.py
+Provides a helper service that ANY controller can call to check geo redirects.
+This way the geo redirect module has NO dependencies and can work with anything.
+"""
 import logging
 import geoip2.database
 import geoip2.errors
@@ -6,14 +11,18 @@ from odoo.http import request
 
 _logger = logging.getLogger(__name__)
 
-class GeoRedirectController(http.Controller):
+
+class GeoRedirectService:
+    """
+    Service class that provides geo redirect functionality.
+    Other controllers can instantiate this and call check_redirect().
+    """
     
-    def _get_client_ip(self):
+    @staticmethod
+    def get_client_ip():
         """Get the real client IP address"""
-        # Check for forwarded IP first (when behind proxy/load balancer)
         forwarded_for = request.httprequest.headers.get('X-Forwarded-For')
         if forwarded_for:
-            # X-Forwarded-For can contain multiple IPs, get the first one
             return forwarded_for.split(',')[0].strip()
         
         real_ip = request.httprequest.headers.get('X-Real-IP')
@@ -22,91 +31,98 @@ class GeoRedirectController(http.Controller):
         
         return request.httprequest.remote_addr
     
-    def _get_country_from_ip(self, ip_address):
+    @staticmethod
+    def get_country_from_ip(ip_address):
         """Get country code from IP address using GeoLite2 database"""
         try:
-            # Path to GeoLite2 database file
-            # Download from: https://dev.maxmind.com/geoip/geoip2/geolite2/
             db_path = 'C:/geoip/GeoLite2-Country.mmdb'
-            
-            # For local testing, skip localhost IPs
-            if ip_address in ['127.0.0.1', 'localhost', '::1']:
-                _logger.info('Localhost detected, skipping geo redirect')
-                return None
-            
+
             with geoip2.database.Reader(db_path) as reader:
                 response = reader.country(ip_address)
                 country_code = response.country.iso_code
-                _logger.info(f'Detected country {country_code} for IP {ip_address}')
                 return country_code
                 
         except geoip2.errors.AddressNotFoundError:
             _logger.warning(f'IP address {ip_address} not found in GeoIP database')
             return None
         except FileNotFoundError:
-            _logger.error('GeoLite2 database file not found. Please download and configure.')
+            _logger.error('GeoLite2 database file not found.')
             return None
         except Exception as e:
             _logger.error(f'Error detecting country from IP: {str(e)}')
             return None
     
-    def _get_redirect_url(self, country_code):
+    @staticmethod
+    def get_redirect_url(country_code):
         """Get the redirect URL for a country code"""
         if not country_code:
             return None
         
-        # Get active redirect configurations
-        RedirectConfig = request.env['geo.redirect.config'].sudo()
-        config = RedirectConfig.search([
-            ('country_code', '=', country_code),
-            ('active', '=', True)
-        ], limit=1)
-        
-        if config:
-            return config.redirect_url
+        try:
+            RedirectConfig = request.env['geo.redirect.config'].sudo()
+            config = RedirectConfig.search([
+                ('country_code', '=', country_code),
+                ('active', '=', True)
+            ], limit=1)
+            
+            if config:
+                return config.redirect_url
+        except Exception as e:
+            _logger.error(f'Error getting redirect URL: {e}')
         
         return None
     
-    @http.route(['/'], type='http', auth='public', website=True)
-    def website_redirect(self, **kwargs):
-        """Intercept homepage requests and redirect based on geolocation"""
+    @staticmethod
+    def check_redirect(**kwargs):
+        """
+        Check if geo redirect is needed and return redirect response if yes.
+        Returns None if no redirect is needed.
         
-        _logger.info('=== GEO REDIRECT: Route triggered ===')
+        Only redirects FROM www.mrbur.shop to country-specific domains.
+        Country-specific domains never redirect (they're the destination).
         
-        # Check if user has opted out of auto-redirect (via query parameter)
+        Usage in any controller:
+            from odoo.addons.geo_redirect.controllers.main import GeoRedirectService
+            
+            @http.route('/', ...)
+            def your_method(self, **kwargs):
+                redirect = GeoRedirectService.check_redirect(**kwargs)
+                if redirect:
+                    return redirect
+                # ... your normal logic
+        """
+        # _logger.info('=== GEO REDIRECT CHECK ===')
+        
+        # Skip if user opted out
         if kwargs.get('no_redirect'):
-            _logger.info('User opted out of redirect via no_redirect parameter')
-            return request.redirect('/shop')
+            # _logger.info('Skipping - user opted out')
+            return None
         
-        # Get current host first
         current_host = request.httprequest.host
-        _logger.info(f'Current host: {current_host}')
+        # _logger.info(f'Current host: {current_host}')
         
-        # Get client IP
-        ip_address = self._get_client_ip()
-        _logger.info(f'Client IP: {ip_address}')
+        # ONLY redirect from www.mrbur.shop
+        # If we're already on a country-specific domain, skip redirect
+        if current_host != 'www.mrbur.shop':
+            _logger.info(f'Not on www.mrbur.shop, skipping redirect')
+            return None
         
-        # Get country from IP
-        country_code = self._get_country_from_ip(ip_address)
-        _logger.info(f'Detected country code: {country_code}')
+        ip_address = GeoRedirectService.get_client_ip()
+        country_code = GeoRedirectService.get_country_from_ip(ip_address)
         
-        # Get redirect URL for country
-        redirect_url = self._get_redirect_url(country_code)
-        _logger.info(f'Redirect URL: {redirect_url}')
+        # _logger.info(f'IP: {ip_address}, Country: {country_code}')
+        
+        redirect_url = GeoRedirectService.get_redirect_url(country_code)
         
         if redirect_url:
-            # Extract the target host from redirect URL
             from urllib.parse import urlparse
             target_host = urlparse(redirect_url).netloc
-            _logger.info(f'Target host: {target_host}, Current host: {current_host}')
             
-            # Only redirect if we're NOT already on the correct target domain
+            # This should always be true since we're on www.mrbur.shop
             if target_host != current_host:
-                # Add /shop to the redirect URL to land directly on the shop page
-                full_redirect_url = redirect_url.rstrip('/') + '/shop'
-                _logger.info(f'REDIRECTING from {current_host} to {full_redirect_url}')
+                full_redirect_url = redirect_url.rstrip('/') + '/'
+                # _logger.info(f'REDIRECTING to {full_redirect_url}')
                 
-                # Use JavaScript redirect for more reliable cross-domain redirect
                 return request.make_response(f'''
                     <!DOCTYPE html>
                     <html>
@@ -119,31 +135,29 @@ class GeoRedirectController(http.Controller):
                     </head>
                     <body>
                         <p>Redirecting to your local store...</p>
-                        <p>If you are not redirected automatically, <a href="{full_redirect_url}">click here</a>.</p>
+                        <p>If you are not redirected, <a href="{full_redirect_url}">click here</a>.</p>
                     </body>
                     </html>
                 ''')
-            else:
-                _logger.info(f'Already on correct target domain ({target_host}), continuing to shop')
-        else:
-            _logger.info('No redirect URL found for this country, staying on current domain')
         
-        # Continue to normal homepage/shop
-        _logger.info('Continuing to /shop')
-        return request.redirect('/shop')
+        return None
 
+
+class GeoRedirectController(http.Controller):
+    """Test endpoints for geo redirect"""
+    
     @http.route(['/geo/test'], type='http', auth='public')
     def test_geo(self, **kwargs):
         """Test geolocation detection"""
-        ip = self._get_client_ip()
-        country = self._get_country_from_ip(ip)
-        redirect_url = self._get_redirect_url(country)
+        ip = GeoRedirectService.get_client_ip()
+        country = GeoRedirectService.get_country_from_ip(ip)
+        redirect_url = GeoRedirectService.get_redirect_url(country)
         
         return f"""
         <h1>Geo Test</h1>
         <p>IP: {ip}</p>
         <p>Country: {country}</p>
         <p>Redirect URL: {redirect_url}</p>
-        <p>Session redirected: {request.session.get('geo_redirected')}</p>
         <p>Current host: {request.httprequest.host}</p>
+        <p><a href="/">Test Redirect (Go to homepage)</a></p>
         """

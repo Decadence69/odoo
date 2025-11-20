@@ -33,7 +33,7 @@
                             <field name="country_code"/>
                         </group>
                         <group>
-                            <field name="redirect_url" placeholder="http://th.mrbur.local:8069"/>
+                            <field name="redirect_url" placeholder="http://th.mrbur.shop"/>
                             <field name="sequence"/>
                         </group>
                     </group>

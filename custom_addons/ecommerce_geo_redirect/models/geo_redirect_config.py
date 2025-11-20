@@ -19,7 +19,7 @@ class GeoRedirectConfig(models.Model):
     redirect_url = fields.Char(
         string='Redirect URL',
         required=True,
-        help='Full URL to redirect to (e.g., http://th.mrbur.local:8069)'
+        help='Full URL to redirect to (e.g., http://th.mrbur.shop/shop)'
     )
     active = fields.Boolean(string='Active', default=True)
     sequence = fields.Integer(string='Sequence', default=10)

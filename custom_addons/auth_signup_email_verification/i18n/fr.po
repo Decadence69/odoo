@@ -1,0 +1,962 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* auth_signup_email_verification
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0+e-20250107\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-24 18:35+0000\n"
+"PO-Revision-Date: 2025-06-24 18:35+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_pending
+msgid "<i class=\"fa fa-arrow-left\"/> Back to Signup"
+msgstr "<i class=\"fa fa-arrow-left\"/> Retour à l'Inscription"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.enhanced_signup
+msgid "<i class=\"fa fa-building me-2\"/>Company"
+msgstr "<i class=\"fa fa-building me-2\"/>Entreprise"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_pending
+msgid ""
+"<i class=\"fa fa-clock-o\"/> \n"
+"                            <strong>Note:</strong> The verification link will expire in"
+msgstr ""
+"<i class=\"fa fa-clock-o\"/> \n"
+"                            <strong>Note:</strong> Le lien de vérification expirera dans"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid ""
+"<i class=\"fa fa-cogs me-2\"/>\n"
+"                                    <strong>Dynamic Model &amp; Field Selection</strong><br/>\n"
+"                                    Choose models, then select specific fields from each model to show during signup.\n"
+"                                    The system will automatically route field values to the correct model records."
+msgstr ""
+"<i class=\"fa fa-cogs me-2\"/>\n"
+"                                    <strong>Sélection Dynamique de Modèles &amp; Champs</strong><br/>\n"
+"                                    Choisissez des modèles, puis sélectionnez des champs spécifiques de chaque modèle à afficher lors de l'inscription.\n"
+"                                    Le système routera automatiquement les valeurs des champs vers les enregistrements de modèle appropriés."
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_success
+msgid "<i class=\"fa fa-home\"/> Go to Dashboard"
+msgstr "<i class=\"fa fa-home\"/> Aller au Tableau de Bord"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid "<i class=\"fa fa-save me-2\"/>Save Model Selection"
+msgstr "<i class=\"fa fa-save me-2\"/>Enregistrer la Sélection de Modèle"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_error
+msgid "<i class=\"fa fa-sign-in\"/> Back to Login"
+msgstr "<i class=\"fa fa-sign-in\"/> Retour à la Connexion"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_pending
+msgid "<i class=\"fa fa-sign-in\"/> Sign In"
+msgstr "<i class=\"fa fa-sign-in\"/> Se Connecter"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.enhanced_signup
+msgid "<i class=\"fa fa-user me-2\"/>Individual"
+msgstr "<i class=\"fa fa-user me-2\"/>Particulier"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_success
+msgid "<i class=\"fa fa-user\"/> Go to My Account"
+msgstr "<i class=\"fa fa-user\"/> Aller à Mon Compte"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_error
+msgid "<i class=\"fa fa-user-plus\"/> Try Signup Again"
+msgstr "<i class=\"fa fa-user-plus\"/> Réessayer l'Inscription"
+
+# Removed contact person field translations for simplified company signup
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid ""
+"<small>\n"
+"                                            The system will automatically use common fields (name, email, phone, website, address, country) \n"
+"                                            from the selected model during company signup.\n"
+"                                        </small>"
+msgstr ""
+"<small>\n"
+"                                            Le système utilisera automatiquement les champs communs (nom, email, téléphone, site web, adresse, pays) \n"
+"                                            du modèle sélectionné lors de l'inscription d'entreprise.\n"
+"                                        </small>"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid "<span class=\"ms-2\">hours</span>"
+msgstr "<span class=\"ms-2\">heures</span>"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_pending
+msgid "<span class=\"mx-2\">|</span>"
+msgstr "<span class=\"mx-2\">|</span>"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid ""
+"<span class=\"o_form_label fw-bold\">Available Fields for Selected "
+"Model:</span>"
+msgstr ""
+"<span class=\"o_form_label fw-bold\">Champs Disponibles pour le "
+"Modèle Sélectionné:</span>"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid "<span class=\"o_form_label\">Additional Signup Fields Configuration</span>"
+msgstr "<span class=\"o_form_label\">Configuration des Champs d'Inscription Supplémentaires</span>"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.enhanced_signup_fields
+msgid "<span id=\"name_label_individual\">Your Name</span>"
+msgstr "<span id=\"name_label_individual\">Votre Nom</span>"
+
+#. module: auth_signup_email_verification
+#: model:mail.template,body_html:auth_signup_email_verification.mail_template_email_verification
+msgid ""
+"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-top: 16px; background-color: #FFFFFF; font-family:Verdana, Arial,sans-serif; color: #454748; width: 100%; border-collapse:separate;\"><tr><td align=\"center\">\n"
+"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"padding: 16px; background-color: #FFFFFF; color: #454748; border-collapse:separate;\">\n"
+"<tbody>\n"
+"    <!-- HEADER -->\n"
+"    <tr>\n"
+"        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
+"                <tr><td valign=\"middle\">\n"
+"                    <span style=\"font-size: 10px;\">Email Verification</span><br/>\n"
+"                    <span style=\"font-size: 20px; font-weight: bold;\">\n"
+"                        <t t-out=\"object.name or ''\">User Name</t>\n"
+"                    </span>\n"
+"                </td><td valign=\"middle\" align=\"right\" t-if=\"not object.company_id.uses_default_logo\">\n"
+"                    <img t-attf-src=\"/logo.png?company={{ object.company_id.id }}\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"object.company_id.name\"/>\n"
+"                </td></tr>\n"
+"                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
+"                  <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\"/>\n"
+"                </td></tr>\n"
+"            </table>\n"
+"        </td>\n"
+"    </tr>\n"
+"    <!-- CONTENT -->\n"
+"    <tr>\n"
+"        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
+"                <tr><td valign=\"top\" style=\"font-size: 13px;\">\n"
+"                    <div>\n"
+"                        Dear <t t-out=\"object.name or ''\">User</t>,<br/><br/>\n"
+"                        Thank you for signing up with <t t-out=\"object.company_id.name or ''\">YourCompany</t>! To complete your account creation, please verify your email address by clicking the button below:\n"
+"                        <div style=\"margin: 16px 0px 16px 0px;\">\n"
+"                            <a t-att-href=\"object.get_verification_url()\" t-attf-style=\"background-color: {{object.company_id.email_secondary_color or '#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;\">\n"
+"                                Verify Email Address\n"
+"                            </a>\n"
+"                        </div>\n"
+"                        <b>This link will remain valid for <t t-out=\"int(object.env['ir.config_parameter'].sudo().get_param('auth_signup_email_verification.verification_validity_hours',144))\"/> hours</b><br/><br/>\n"
+"                        <t t-set=\"website_url\" t-value=\"object.get_base_url()\"/>\n"
+"                        Your Odoo domain is: <b><a t-att-href=\"website_url\" t-out=\"website_url or ''\">http://yourcompany.odoo.com</a></b><br/>\n"
+"                        Your sign in email is: <b><t t-out=\"object.email or ''\">user@example.com</t></b><br/><br/>\n"
+"                        If you didn't create an account, you can safely ignore this email.<br/><br/>\n"
+"                        Enjoy Odoo!<br/>\n"
+"                        --<br/>The <t t-out=\"object.company_id.name or ''\">YourCompany</t> Team\n"
+"                    </div>\n"
+"                </td></tr>\n"
+"                <tr><td style=\"text-align:center;\">\n"
+"                  <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\"/>\n"
+"                </td></tr>\n"
+"            </table>\n"
+"        </td>\n"
+"    </tr>\n"
+"    <!-- FOOTER -->\n"
+"    <tr>\n"
+"        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; font-size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
+"                <tr><td valign=\"middle\" align=\"left\">\n"
+"                    <t t-out=\"object.company_id.name or ''\">YourCompany</t>\n"
+"                </td></tr>\n"
+"                <tr><td valign=\"middle\" align=\"left\" style=\"opacity: 0.7; jm \">\n"
+"                    <t t-out=\"object.company_id.phone or ''\">+1 650-123-4567</t>\n"
+"                    <t t-if=\"object.company_id.email\">\n"
+"                        | <a t-att-href=\"'mailto:%s' % object.company_id.email\" style=\"text-decoration:none; color: #454748;\" t-out=\"object.company_id.email or ''\">info@yourcompany.com</a>\n"
+"                    </t>\n"
+"                    <t t-if=\"object.company_id.website\">\n"
+"                        | <a t-att-href=\"'%s' % object.company_id.website\" style=\"text-decoration:none; color: #454748;\" t-out=\"object.company_id.website or ''\">http://www.example.com</a>\n"
+"                    </t>\n"
+"                </td></tr>\n"
+"            </table>\n"
+"        </td>\n"
+"    </tr>\n"
+"</tbody>\n"
+"</table>\n"
+"</td></tr>\n"
+"<!-- POWERED BY -->\n"
+"<tr><td align=\"center\" style=\"min-width: 590px;\">\n"
+"    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: #F1F1F1; color: #454748; padding: 8px; border-collapse:separate;\">\n"
+"      <tr><td style=\"text-align: center; font-size: 13px;\">\n"
+"        Powered by <a target=\"_blank\" href=\"https://www.odoo.com?utm_source=db&amp;utm_medium=auth\" style=\"color: #875A7B;\">Odoo</a>\n"
+"      </td></tr>\n"
+"    </table>\n"
+"</td></tr>\n"
+"</table>\n"
+"            "
+msgstr ""
+"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-top: 16px; background-color: #FFFFFF; font-family:Verdana, Arial,sans-serif; color: #454748; width: 100%; border-collapse:separate;\"><tr><td align=\"center\">\n"
+"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"padding: 16px; background-color: #FFFFFF; color: #454748; border-collapse:separate;\">\n"
+"<tbody>\n"
+"    <!-- HEADER -->\n"
+"    <tr>\n"
+"        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
+"                <tr><td valign=\"middle\">\n"
+"                    <span style=\"font-size: 10px;\">Vérification Email</span><br/>\n"
+"                    <span style=\"font-size: 20px; font-weight: bold;\">\n"
+"                        <t t-out=\"object.name or ''\">User Name</t>\n"
+"                    </span>\n"
+"                </td><td valign=\"middle\" align=\"right\" t-if=\"not object.company_id.uses_default_logo\">\n"
+"                    <img t-attf-src=\"/logo.png?company={{ object.company_id.id }}\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"object.company_id.name\"/>\n"
+"                </td></tr>\n"
+"                <tr><td colspan=\"2\" style=\"text-align:center;\">\n"
+"                  <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\"/>\n"
+"                </td></tr>\n"
+"            </table>\n"
+"        </td>\n"
+"    </tr>\n"
+"    <!-- CONTENT -->\n"
+"    <tr>\n"
+"        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
+"                <tr><td valign=\"top\" style=\"font-size: 13px;\">\n"
+"                    <div>\n"
+"                        Cher/Chère <t t-out=\"object.name or ''\">User</t>,<br/><br/>\n"
+"                        Merci de vous être inscrit(e) avec <t t-out=\"user.company_id.name or ''\"/> ! Pour terminer la création de votre compte, veuillez vérifier votre adresse email en cliquant sur le bouton ci-dessous :\n"
+"                        <div style=\"margin: 16px 0px 16px 0px;\">\n"
+"                            <a t-att-href=\"object.get_verification_url()\" t-attf-style=\"background-color: {{object.company_id.email_secondary_color or '#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;\">\n"
+"                                Vérifier l'Adresse Email\n"
+"                            </a>\n"
+"                        </div>\n"
+"                        <b>Ce lien restera valide pendant <t t-out=\"int(object.env['ir.config_parameter'].sudo().get_param('auth_signup_email_verification.verification_validity_hours',144))\"/> heures</b><br/><br/>\n"
+"                        <t t-set=\"website_url\" t-value=\"object.get_base_url()\"/>\n"
+"                        Votre domaine Odoo est : <b><a t-att-href=\"website_url\" t-out=\"website_url or ''\">http://yourcompany.odoo.com</a></b><br/>\n"
+"                        Votre email de connexion est : <b><t t-out=\"object.email or ''\">user@example.com</t></b><br/><br/>\n"
+"                        Si vous n'avez pas créé de compte, vous pouvez ignorer cet email en toute sécurité.<br/><br/>\n"
+"                        --<br/>L'équipe <t t-out=\"user.company_id.name or ''\"/>\n"
+"                    </div>\n"
+"                </td></tr>\n"
+"                <tr><td style=\"text-align:center;\">\n"
+"                  <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\"/>\n"
+"                </td></tr>\n"
+"            </table>\n"
+"        </td>\n"
+"    </tr>\n"
+"    <!-- FOOTER -->\n"
+"    <tr>\n"
+"        <td align=\"center\" style=\"min-width: 590px;\">\n"
+"            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; font-size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
+"                <tr><td valign=\"middle\" align=\"left\">\n"
+"                    <t t-out=\"object.company_id.name or ''\">YourCompany</t>\n"
+"                </td></tr>\n"
+"                <tr><td valign=\"middle\" align=\"left\" style=\"opacity: 0.7; jm \">\n"
+"                    <t t-out=\"object.company_id.phone or ''\">+1 650-123-4567</t>\n"
+"                    <t t-if=\"object.company_id.email\">\n"
+"                        | <a t-att-href=\"'mailto:%s' % object.company_id.email\" style=\"text-decoration:none; color: #454748;\" t-out=\"object.company_id.email or ''\">info@yourcompany.com</a>\n"
+"                    </t>\n"
+"                    <t t-if=\"object.company_id.website\">\n"
+"                        | <a t-att-href=\"'%s' % object.company_id.website\" style=\"text-decoration:none; color: #454748;\" t-out=\"object.company_id.website or ''\">http://www.example.com</a>\n"
+"                    </t>\n"
+"                </td></tr>\n"
+"            </table>\n"
+"        </td>\n"
+"    </tr>\n"
+"</tbody>\n"
+"</table>\n"
+"</td></tr>\n"
+"<!-- POWERED BY -->\n"
+"<tr><td align=\"center\" style=\"min-width: 590px;\">\n"
+"    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: #F1F1F1; color: #454748; padding: 8px; border-collapse:separate;\">\n"
+"      <tr><td style=\"text-align: center; font-size: 13px;\">\n"
+"        Propulsé par <a target=\"_blank\" href=\"https://intercom.ml?utm_source=email&amp;utm_medium=verification&amp;utm_campaign=signup\" style=\"color: #00B5B8;\">INTERCOM MALI</a>\n"
+"      </td></tr>\n"
+"    </table>\n"
+"</td></tr>\n"
+"</table>\n"
+"            "
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/models/res_partner.py:0
+#: code:addons/auth_signup_email_verification/models/res_partner.py:0
+#: code:addons/models/res_partner.py:0
+msgid "A user with this email already exists."
+msgstr "Un utilisateur avec cet email existe déjà."
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,field_description:auth_signup_email_verification.field_res_config_settings__all_field_configurations
+msgid "All Field Configurations"
+msgstr "Toutes les Configurations de Champs"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid "All field selections are preserved when switching between models"
+msgstr "Toutes les sélections de champs sont préservées lors du changement de modèles"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.enhanced_signup
+msgid "Account Type"
+msgstr "Type de Compte"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.enhanced_signup
+msgid "Account type selection"
+msgstr "Sélection du type de compte"
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,field_description:auth_signup_email_verification.field_res_config_settings__auth_signup_company_toggle
+msgid "Allow Company/Individual Selection"
+msgstr "Autoriser la Sélection Entreprise/Particulier"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid ""
+"Allow users to choose between Individual and Company account types during "
+"signup"
+msgstr ""
+"Permettre aux utilisateurs de choisir entre les types de comptes Particulier et Entreprise lors de l'inscription"
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,field_description:auth_signup_email_verification.field_res_config_settings__available_field_ids
+msgid "Available Fields"
+msgstr "Champs Disponibles"
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,help:auth_signup_email_verification.field_res_config_settings__available_field_ids
+msgid "Available fields for the selected model"
+msgstr "Champs disponibles pour le modèle sélectionné"
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/controllers/main.py:0
+msgid "An error occurred during verification. Please try signing up again."
+msgstr "Une erreur s'est produite lors de la vérification. Veuillez réessayer l'inscription."
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/controllers/main.py:0
+msgid "Another user is already registered using this email address."
+msgstr "Un autre utilisateur est déjà enregistré avec cette adresse email."
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_pending
+msgid "Check Your Email"
+msgstr "Vérifiez votre Email"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid "Choose a model..."
+msgstr "Choisissez un modèle..."
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,help:auth_signup_email_verification.field_res_config_settings__selected_model
+msgid "Choose which model to use for additional signup fields"
+msgstr "Choisissez quel modèle utiliser pour les champs d'inscription supplémentaires"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid "Click \"Save Model Selection\" to apply changes"
+msgstr "Cliquez sur \"Enregistrer la Sélection de Modèle\" pour appliquer les modifications"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.enhanced_signup_fields
+msgid "Company Email"
+msgstr "Email de l'Entreprise"
+
+# Removed separate company email field for simplified signup
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.enhanced_signup_fields
+msgid "Company Name"
+msgstr "Nom de l'Entreprise"
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/controllers/main.py:0
+msgid "Company name is required for company accounts."
+msgstr "Le nom de l'entreprise est requis pour les comptes d'entreprise."
+
+# Removed company email validation message for simplified signup
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid "Company/Individual Selection"
+msgstr "Sélection Entreprise/Particulier"
+
+#. module: auth_signup_email_verification
+#: model:ir.model,name:auth_signup_email_verification.model_res_config_settings
+msgid "Config Settings"
+msgstr "Paramètres de configuration"
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/models/res_config_settings.py:0
+#: code:addons/auth_signup_email_verification/models/res_config_settings.py:0
+#: code:addons/models/res_config_settings.py:0
+msgid "Configuration Saved"
+msgstr "Configuration Enregistrée"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid "Configure how long verification links remain valid"
+msgstr "Configurez combien de temps les liens de vérification restent valides"
+
+#. module: auth_signup_email_verification
+#: model:ir.model,name:auth_signup_email_verification.model_res_partner
+msgid "Contact"
+msgstr "Contact"
+
+# Removed all contact person translations for simplified company signup
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,help:auth_signup_email_verification.field_res_config_settings__show_signup_features
+msgid "Controlled by Odoo's official 'Free sign up' setting"
+msgstr "Contrôlé par le paramètre officiel 'Inscription gratuite' d'Odoo"
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/controllers/main.py:0
+msgid "Could not create a new account."
+msgstr "Impossible de créer un nouveau compte."
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid ""
+"Default: 144 hours (6 days). Links expire after this time for security."
+msgstr ""
+"Par défaut: 144 heures (6 jours). Les liens expirent après ce délai pour des raisons de sécurité."
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid "Dynamic Signup Fields"
+msgstr "Champs d'Inscription Dynamiques"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid "Email Verification Link Validity"
+msgstr "Validité du Lien de Vérification Email"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_pending
+msgid "Email Verification Required"
+msgstr "Vérification Email Requise"
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,field_description:auth_signup_email_verification.field_res_config_settings__auth_signup_verification_validity_hours
+msgid "Email Verification Validity (Hours)"
+msgstr "Validité de la Vérification Email (Heures)"
+
+#. module: auth_signup_email_verification
+#: model:mail.template,name:auth_signup_email_verification.mail_template_email_verification
+msgid "Email Verification for Signup"
+msgstr "Vérification Email pour l'Inscription"
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,field_description:auth_signup_email_verification.field_res_partner__email_verified
+#: model:ir.model.fields,field_description:auth_signup_email_verification.field_res_users__email_verified
+msgid "Email Verified"
+msgstr "Email Vérifié"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_success
+msgid "Email Verified Successfully!"
+msgstr "Email Vérifié avec Succès!"
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/models/res_partner.py:0
+#: code:addons/auth_signup_email_verification/models/res_partner.py:0
+#: code:addons/models/res_partner.py:0
+msgid "Email address is required for verification."
+msgstr "L'adresse email est requise pour la vérification."
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/models/res_partner.py:0
+#: code:addons/auth_signup_email_verification/models/res_partner.py:0
+#: code:addons/models/res_partner.py:0
+msgid "Email has already been verified."
+msgstr "L'email a déjà été vérifié."
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,help:auth_signup_email_verification.field_res_config_settings__auth_signup_company_toggle
+msgid ""
+"Enable users to choose between Individual and Company account types during "
+"signup"
+msgstr ""
+"Permettre aux utilisateurs de choisir entre les types de comptes Particulier et Entreprise lors de l'inscription"
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/controllers/main.py:0
+msgid "Failed to create user account. Please contact support."
+msgstr "Échec de création du compte utilisateur. Veuillez contacter le support."
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/controllers/main.py:0
+msgid "Failed to resend verification email. Please try again."
+msgstr "Échec du renvoi de l'email de vérification. Veuillez réessayer."
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/models/res_partner.py:0
+#: code:addons/auth_signup_email_verification/models/res_partner.py:0
+#: code:addons/models/res_partner.py:0
+msgid "Failed to send verification email. Please try again."
+msgstr "Échec de l'envoi de l'email de vérification. Veuillez réessayer."
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,field_description:auth_signup_email_verification.field_res_config_settings__selected_signup_field_ids
+msgid "Fields to Show During Signup"
+msgstr "Champs à Afficher Lors de l'Inscription"
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,help:auth_signup_email_verification.field_res_partner__email_verified
+#: model:ir.model.fields,help:auth_signup_email_verification.field_res_users__email_verified
+msgid "Indicates if the email address has been verified"
+msgstr "Indique si l'adresse email a été vérifiée"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_error
+msgid "Invalid or Expired Link"
+msgstr "Lien Invalide ou Expiré"
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/controllers/main.py:0
+msgid "Invalid verification link."
+msgstr "Lien de vérification invalide."
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,help:auth_signup_email_verification.field_res_config_settings__all_field_configurations
+msgid "JSON string storing field selections for all models"
+msgstr "Chaîne JSON stockant les sélections de champs pour tous les modèles"
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/models/res_config_settings.py:0
+#: code:addons/auth_signup_email_verification/models/res_config_settings.py:0
+#: code:addons/models/res_config_settings.py:0
+msgid "Model and field configuration updated successfully."
+msgstr "Configuration du modèle et des champs mise à jour avec succès."
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/controllers/main.py:0
+msgid "No pending verification found for this email."
+msgstr "Aucune vérification en attente trouvée pour cet email."
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,help:auth_signup_email_verification.field_res_config_settings__auth_signup_verification_validity_hours
+msgid "Number of hours the verification link remains valid"
+msgstr "Nombre d'heures pendant lesquelles le lien de vérification reste valide"
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/controllers/main.py:0
+msgid "Passwords do not match; please retype them."
+msgstr "Les mots de passe ne correspondent pas; veuillez les ressaisir."
+
+# Removed personal email help text for simplified signup
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_pending
+msgid ""
+"Please check your inbox and click the verification link to complete your "
+"account creation."
+msgstr ""
+"Veuillez vérifier votre boîte de réception et cliquer sur le lien de vérification pour compléter la création de votre compte."
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/controllers/main.py:0
+msgid "Please fill in all required fields."
+msgstr "Veuillez remplir tous les champs obligatoires."
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_error
+msgid ""
+"Please try signing up again or contact support if you continue having "
+"issues."
+msgstr ""
+"Veuillez réessayer l'inscription ou contacter le support si vous continuez à avoir des problèmes."
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.enhanced_signup_fields
+msgid "Select"
+msgstr "Sélectionner"
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,field_description:auth_signup_email_verification.field_res_config_settings__selected_model
+msgid "Select Model"
+msgstr "Sélectionner un Modèle"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid "Select additional fields from any model to show during signup"
+msgstr "Sélectionner des champs supplémentaires de n'importe quel modèle à afficher lors de l'inscription"
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,help:auth_signup_email_verification.field_res_config_settings__selected_signup_field_ids
+msgid "Select which fields to display during company signup"
+msgstr "Sélectionner quels champs afficher lors de l'inscription d'entreprise"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid ""
+"Select models and fields to show during company signup. \n"
+"                                Fields will be stored in appropriate model records automatically."
+msgstr ""
+"Sélectionner les modèles et champs à afficher lors de l'inscription d'entreprise. \n"
+"                                Les champs seront stockés automatiquement dans les enregistrements de modèle appropriés."
+
+#. module: auth_signup_email_verification
+#: model:mail.template,description:auth_signup_email_verification.mail_template_email_verification
+msgid "Sent to new user for email verification during signup process"
+msgstr "Envoyé au nouvel utilisateur pour la vérification d'email lors du processus d'inscription"
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,field_description:auth_signup_email_verification.field_res_config_settings__show_signup_features
+msgid "Show Signup Features"
+msgstr "Afficher les Fonctionnalités d'Inscription"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.website_signup_button
+msgid "Sign up"
+msgstr "S'inscrire"
+
+#. module: auth_signup_email_verification
+#: model:ir.model,name:auth_signup_email_verification.model_auth_signup_field_helper
+msgid "Signup Field Helper"
+msgstr "Assistant de Champ d'Inscription"
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,field_description:auth_signup_email_verification.field_res_partner__signup_user_data
+#: model:ir.model.fields,field_description:auth_signup_email_verification.field_res_users__signup_user_data
+msgid "Signup User Data"
+msgstr "Données Utilisateur d'Inscription"
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/controllers/main.py:0
+msgid "Suspicious activity detected by Google reCaptcha."
+msgstr "Activité suspecte détectée par Google reCaptcha."
+
+#. module: auth_signup_email_verification
+#: model:ir.model.fields,help:auth_signup_email_verification.field_res_partner__signup_user_data
+#: model:ir.model.fields,help:auth_signup_email_verification.field_res_users__signup_user_data
+msgid "Temporary storage for user data during email verification"
+msgstr "Stockage temporaire des données utilisateur pendant la vérification d'email"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_error
+msgid "The verification link is invalid or has expired."
+msgstr "Le lien de vérification est invalide ou a expiré."
+
+#. module: auth_signup_email_verification
+#: model:ir.model,name:auth_signup_email_verification.model_res_users
+msgid "User"
+msgstr "Utilisateur"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_error
+msgid "Verification Failed"
+msgstr "Échec de la Vérification"
+
+#. module: auth_signup_email_verification
+#. odoo-python
+#: code:addons/auth_signup_email_verification/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/auth_signup_email_verification/controllers/main.py:0
+#: code:addons/controllers/main.py:0
+msgid ""
+"Verification link has expired or is invalid. Please try signing up again."
+msgstr ""
+"Le lien de vérification a expiré ou est invalide. Veuillez réessayer l'inscription."
+
+#. module: auth_signup_email_verification
+#: model:mail.template,subject:auth_signup_email_verification.mail_template_email_verification
+msgid "Verify your email address - {{ object.company_id.name or 'Odoo' }}"
+msgstr "Vérifiez votre adresse email - {{ user.company_id.name }}"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_pending
+msgid "We've sent a verification email to"
+msgstr "Nous avons envoyé un email de vérification à"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_success
+msgid "Welcome to"
+msgstr "Bienvenue sur"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid ""
+"When enabled, users can choose between creating an Individual account or a "
+"Company account with contact person details during signup."
+msgstr ""
+"Lorsque activé, les utilisateurs peuvent choisir entre créer un compte Particulier ou un compte Entreprise avec les détails de la personne de contact lors de l'inscription."
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_success
+msgid "You are now logged in and can access your account."
+msgstr "Vous êtes maintenant connecté et pouvez accéder à votre compte."
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid "You can select different models and add fields from each"
+msgstr "Vous pouvez sélectionner différents modèles et ajouter des champs de chacun"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid "<strong>How it works:</strong>"
+msgstr "<strong>Comment ça fonctionne:</strong>"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid "<strong>Select Fields to Show During Signup:</strong>"
+msgstr "<strong>Sélectionner les Champs à Afficher Lors de l'Inscription:</strong>"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_success
+msgid ""
+"Your email has been verified and your account has been created successfully."
+msgstr ""
+"Votre email a été vérifié et votre compte a été créé avec succès."
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.enhanced_signup_fields
+msgid "e.g. Nour AYACHE"
+msgstr "ex. Nour AYACHE"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.enhanced_signup_fields
+msgid "e.g. hello@intercom.ml"
+msgstr "ex. hello@intercom.ml"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.enhanced_signup_fields
+msgid "<span id=\"login_help_individual\">This will be your login email</span>"
+msgstr "<span id=\"login_help_individual\">Ceci sera votre email de connexion</span>"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.enhanced_signup_fields
+msgid "Company email for login and communication"
+msgstr "Email de l'entreprise pour la connexion et la communication"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.enhanced_signup_fields
+msgid "<span id=\"login_label_individual\">Your Email</span>"
+msgstr "<span id=\"login_label_individual\">Votre Email</span>"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.enhanced_signup_fields
+msgid "<span id=\"name_label_individual\">Your Name</span>"
+msgstr "<span id=\"name_label_individual\">Votre Nom</span>"
+
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.email_verification_pending
+msgid ""
+"hours for security reasons. \n"
+"                            If you don't receive the email, check your spam folder."
+msgstr ""
+"heures pour des raisons de sécurité. \n"
+"                            Si vous ne recevez pas l'email, vérifiez votre dossier spam."
+# Missing translations from fr-new.po
+# Add these entries to your auth_signup_email_verification/i18n/fr.po file and translate them
+# Generated automatically by compare_translations.py
+
+# Entry 1/27
+#. module: auth_signup_email_verification
+msgid "<i class=\"fa fa-cogs me-2\"/>Field Configuration"
+msgstr "<i class=\"fa fa-cogs me-2\"/>Configuration des Champs"
+
+# Entry 2/27
+#. module: auth_signup_email_verification
+msgid ""
+"<i class=\"fa fa-eye me-2\"/>\n                                                    <strong>Signup Form Preview Order:</strong>\n"
+msgstr ""
+
+# Entry 3/27
+#. module: auth_signup_email_verification
+msgid "<i class=\"fa fa-eye me-2\"/>Configuration Summary"
+msgstr "<i class=\"fa fa-eye me-2\"/>Résumé de Configuration"
+
+# Entry 4/27
+#. module: auth_signup_email_verification
+msgid ""
+"<i class=\"fa fa-info-circle me-2\"/>\n                                            <strong>Select the fields you want to display during company signup.</strong>\n                                            <br/>After selecting fields, click \"Save\" at the bottom of this page to save your configuration.\n"
+msgstr ""
+
+# Entry 5/27
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid ""
+"<i class=\"fa fa-info-circle me-2\"/>\n"
+"                                        <strong>How it works:</strong> These fields will appear in the company signup form and automatically route values to the appropriate model records."
+msgstr ""
+"<i class=\"fa fa-info-circle me-2\"/>\n                                        <strong>Comment ça fonctionne:</strong> Ces champs apparaîtront dans le formulaire d'inscription de l'entreprise et achemineront automatiquement les valeurs vers les enregistrements de modèle appropriés.\n"
+
+# Entry 6/27
+#. module: auth_signup_email_verification
+msgid ""
+"<i class=\"fa fa-lightbulb-o me-2\"/>\n                                                    <strong>How to reorder:</strong> Remove fields and re-add them in desired order.\n                                                    The last added field appears at the bottom of the signup form.\n"
+msgstr ""
+
+# Entry 7/27
+#. module: auth_signup_email_verification
+msgid ""
+"<i class=\"fa fa-save me-2\"/>\n                                            <strong>Next Step:</strong> Click the \"Save\" button at the bottom of this settings page to save your field configuration.\n"
+msgstr ""
+"<i class=\"fa fa-save me-2\"/>\n                                            <strong>Étape suivante:</strong> Cliquez sur le bouton \"Enregistrer\" en bas de cette page de paramètres pour sauvegarder votre configuration de champs.\n"
+# Entry 8/27
+#. module: auth_signup_email_verification
+msgid "<small class=\"text-muted d-block mb-2\">Select all that apply:</small>"
+msgstr "<small class=\"text-muted d-block mb-2\">Sélectionnez tout ce qui s'applique:</small>"
+
+# Entry 9/27
+#. module: auth_signup_email_verification
+msgid ""
+"<small class=\"text-muted\">\n                                                            The selected fields will appear on the signup page in the order you selected them.\n                                                            Check the Configuration Summary below for detailed preview.\n                                                        </small>\n"
+msgstr ""
+
+# Entry 10/27
+#. module: auth_signup_email_verification
+msgid ""
+"<small class=\"text-muted\">\n                                                        <i class=\"fa fa-info-circle\"/>\n                                                        This is how fields will appear on the signup page\n                                                    </small>\n"
+msgstr ""
+
+# Entry 11/27
+#. module: auth_signup_email_verification
+msgid ""
+"<small class=\"text-muted\">Choose from Contact, Lead/Opportunity, Sales Order, and more...</small>\n"
+msgstr ""
+"<small class=\"text-muted\">Choisissez parmi Contact, Prospect/Opportunité, Commande de Vente, et plus...</small>\n"
+
+# Entry 12/27
+#. module: auth_signup_email_verification
+msgid "<strong>Select Model:</strong>"
+msgstr "<strong>Sélectionner un Modèle:</strong>"
+
+# Entry 13/27
+#. module: auth_signup_email_verification
+msgid ""
+"<strong>To remove this model:</strong><br/>\n                                                Deselect all fields below and click \"Save\" at the bottom of the page.\n"
+msgstr ""
+"<strong>Pour supprimer ce modèle:</strong><br/>\n                                                Désélectionnez tous les champs ci-dessous et cliquez sur \"Enregistrer\" en bas de la page.\n"
+
+# Entry 14/27
+#. module: auth_signup_email_verification
+msgid ""
+"<strong>📋 Selected Fields (Signup Form Order):</strong>\n                                                    <small class=\"text-muted d-block\">\n                                                        <i class=\"fa fa-arrows text-primary\"/> Fields appear on signup page in this exact order\n                                                    </small>\n"
+msgstr ""
+"<strong>📋 Champs Sélectionnés (Ordre du Formulaire d'Inscription):</strong>\n                                                    <small class=\"text-muted d-block\">\n                                                        <i class=\"fa fa-arrows text-primary\"/> Les champs apparaissent sur la page d'inscription dans cet ordre exact\n                                                    </small>\n"
+
+# Entry 15/27
+#. module: auth_signup_email_verification
+msgid ""
+"<strong>📚 Available Fields:</strong>\n                                                    <small class=\"text-muted d-block\">Click to add to signup form</small>\n"
+msgstr ""
+"<strong>📚 Champs Disponibles:</strong>\n                                                    <small class=\"text-muted d-block\">Cliquez pour ajouter au formulaire d'inscription</small>\n"
+
+# Entry 16/27
+#. module: auth_signup_email_verification
+msgid ""
+"<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" style=\"padding-top: 16px; background-color: #FFFFFF; font-family:Verdana, Arial,sans-serif; color: #454748; width: 100%; border-collapse:separate;\"><tr><td align=\"center\">\n<table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"padding: 16px; background-color: #FFFFFF; color: #454748; border-collapse:separate;\">\n<tbody>\n    <!-- HEADER -->\n    <tr>\n        <td align=\"center\" style=\"min-width: 590px;\">\n            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n                <tr><td valign=\"middle\">\n                    <span style=\"font-size: 10px;\">Email Verification</span><br/>\n                    <span style=\"font-size: 20px; font-weight: bold;\">\n                        <t t-out=\"object.name or ''\">User Name</t>\n                    </span>\n                </td><td valign=\"middle\" align=\"right\" t-if=\"not user.company_id.uses_default_logo\">\n                    <img t-attf-src=\"/logo.png?company={{ user.company_id.id }}\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"user.company_id.name\"/>\n                </td></tr>\n                <tr><td colspan=\"2\" style=\"text-align:center;\">\n                  <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\"/>\n                </td></tr>\n            </table>\n        </td>\n    </tr>\n    <!-- CONTENT -->\n    <tr>\n        <td align=\"center\" style=\"min-width: 590px;\">\n            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n                <tr><td valign=\"top\" style=\"font-size: 13px;\">\n                    <div>\n                        Dear <t t-out=\"object.name or ''\">User</t>,<br/><br/>\n                        Thank you for signing up with <t t-out=\"user.company_id.name or ''\"/>! To complete your account creation, please verify your email address by clicking the button below:\n                        <div style=\"margin: 16px 0px 16px 0px;\">\n                            <a t-att-href=\"object.get_verification_url()\" t-attf-style=\"background-color: {{user.company_id.email_secondary_color or '#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: #fff; border-radius: 5px; font-size:13px;\">\n                                Verify Email Address\n                            </a>\n                        </div>\n                        <b>This link will remain valid for <t t-out=\"int(object.env['ir.config_parameter'].sudo().get_param('auth_signup_email_verification.verification_validity_hours',144))\"/> hours</b><br/><br/>\n                        <t t-set=\"website_url\" t-value=\"object.get_base_url()\"/>\n                        Your Odoo domain is: <b><a t-att-href=\"website_url\" t-out=\"website_url or ''\">http://yourcompany.odoo.com</a></b><br/>\n                        Your sign in email is: <b><t t-out=\"object.email or ''\">user@example.com</t></b><br/><br/>\n                        If you didn't create an account, you can safely ignore this email.<br/><br/>\n                        --<br/>The <t t-out=\"user.company_id.name or ''\"/> Team\n                    </div>\n                </td></tr>\n                <tr><td style=\"text-align:center;\">\n                  <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\"/>\n                </td></tr>\n            </table>\n        </td>\n    </tr>\n    <!-- FOOTER -->\n    <tr>\n        <td align=\"center\" style=\"min-width: 590px;\">\n            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; font-size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n                <tr><td valign=\"middle\" align=\"left\">\n                    <t t-out=\"user.company_id.name or ''\"/>\n                </td></tr>\n                <tr><td valign=\"middle\" align=\"left\" style=\"opacity: 0.7; jm \">\n                    <t t-out=\"user.company_id.phone or ''\">+1 650-123-4567</t>\n                    <t t-if=\"user.company_id.email\">\n                        | <a t-att-href=\"'mailto:%s' % user.company_id.email\" style=\"text-decoration:none; color: #454748;\" t-out=\"user.company_id.email or ''\">info@yourcompany.com</a>\n                    </t>\n                    <t t-if=\"user.company_id.website\">\n                        | <a t-att-href=\"'%s' % user.company_id.website\" style=\"text-decoration:none; color: #454748;\" t-out=\"user.company_id.website or ''\">http://www.example.com</a>\n                    </t>\n                </td></tr>\n            </table>\n        </td>\n    </tr>\n</tbody>\n</table>\n</td></tr>\n<!-- POWERED BY -->\n<tr><td align=\"center\" style=\"min-width: 590px;\">\n    <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: #F1F1F1; color: #454748; padding: 8px; border-collapse:separate;\">\n      <tr><td style=\"text-align: center; font-size: 13px;\">\n        Powered by <a target=\"_blank\" href=\"https://intercom.ml?utm_source=email&amp;utm_medium=verification&amp;utm_campaign=signup\" style=\"color: #00B5B8;\">INTERCOM MALI</a>\n      </td></tr>\n    </table>\n</td></tr>\n</table>\n            \n"
+msgstr ""
+
+# Entry 17/27
+#. module: auth_signup_email_verification
+msgid "Choose a model to configure fields for"
+msgstr "Choisissez un modèle pour configurer les champs"
+
+# Entry 18/27
+#. module: auth_signup_email_verification
+msgid "Choose a model to configure..."
+msgstr "Choisissez un modèle à configurer..."
+
+# Entry 19/27
+#. module: auth_signup_email_verification
+msgid "Configuration Summary"
+msgstr "Résumé de Configuration"
+
+# Entry 20/27
+#. module: auth_signup_email_verification
+msgid "JSON string of selected field IDs for current model"
+msgstr "Chaîne JSON des IDs de champs sélectionnés pour le modèle actuel"
+
+# Entry 21/27
+#. module: auth_signup_email_verification
+msgid "Review configured models and fields for signup forms"
+msgstr "Examiner les modèles et champs configurés pour les formulaires d'inscription"
+
+# Entry 22/27
+#. module: auth_signup_email_verification
+#: model_terms:ir.ui.view,arch_db:auth_signup_email_verification.res_config_settings_view_form_inherit_auth_signup_email_verification
+msgid "Select a model above to configure its fields"
+msgstr "Sélectionnez un modèle ci-dessus pour configurer ses champs"
+
+# Entry 23/27
+#. module: auth_signup_email_verification
+msgid "Select fields in desired order..."
+msgstr "Sélectionnez les champs dans l'ordre souhaité..."
+
+# Entry 24/27
+#. module: auth_signup_email_verification
+msgid "Select which fields to display during signup"
+msgstr "Sélectionnez quels champs afficher lors de l'inscription"
+
+# Entry 25/27
+#. module: auth_signup_email_verification
+msgid "Selected Field IDs (JSON)"
+msgstr "IDs des Champs Sélectionnés (JSON)"
+
+# Entry 26/27
+#. module: auth_signup_email_verification
+msgid "Summary of all configured model fields"
+msgstr "Résumé de tous les champs de modèle configurés"
+
+# Entry 27/27
+#. module: auth_signup_email_verification
+msgid "Verify your email address - {{ user.company_id.name }}"
+msgstr "Vérifiez votre adresse email - {{ user.company_id.name }}"
+

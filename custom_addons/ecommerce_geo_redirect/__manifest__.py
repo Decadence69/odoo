@@ -1,6 +1,6 @@
 {
     'name': 'GeoLite2 Geographic Redirect',
-    'version': '1.0.0',
+    'version': '1.0.1',
     'category': 'Website',
     'summary': 'Redirect users to country-specific websites based on IP geolocation',
     'description': """

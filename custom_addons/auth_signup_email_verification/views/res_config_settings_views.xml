@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="res_config_settings_view_form_inherit_auth_signup_email_verification" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.website.auth.signup.email.verification</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="website.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <!-- Add after the website_login_documents setting in Privacy section -->
+                <xpath expr="//setting[@id='website_login_documents']" position="after">
+                    
+                    <!-- Company/Individual Toggle -->
+                    <setting id="company_individual_toggle" 
+                             string="Company/Individual Selection" 
+                             help="Allow users to choose between Individual and Company account types during signup"
+                             invisible="auth_signup_uninvited != 'b2c'">
+                        <div class="o_setting_left_pane">
+                            <field name="auth_signup_company_toggle"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="auth_signup_company_toggle" class="o_form_label"/>
+                            <div class="text-muted">
+                                When enabled, users can choose between creating an Individual account or a Company account with contact person details during signup.
+                            </div>
+                        </div>
+                    </setting>
+                    
+                    <!-- Email Verification Settings -->
+                    <setting id="email_verification_validity" 
+                             string="Email Verification Link Validity" 
+                             help="Configure how long verification links remain valid"
+                             invisible="auth_signup_uninvited != 'b2c'">
+                        <div class="o_setting_left_pane">
+                            <!-- No checkbox for this setting -->
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="auth_signup_verification_validity_hours" class="o_form_label"/>
+                            <div class="d-flex align-items-center mt8">
+                                <field name="auth_signup_verification_validity_hours" class="w-auto"/>
+                                <span class="ms-2">hours</span>
+                            </div>
+                            <div class="text-muted">
+                                Default: 144 hours (6 days). Links expire after this time for security.
+                            </div>
+                        </div>
+                    </setting>
+                    
+                    <!-- Simplified Dynamic Field Selection in Single Container -->
+                    <setting id="dynamic_field_selection" 
+                             string="Dynamic Signup Fields" 
+                             help="Select additional fields from any model to show during signup"
+                             invisible="auth_signup_uninvited != 'b2c' or not auth_signup_company_toggle">
+                        <div class="o_setting_left_pane" style="display: none !important;">
+                            <!-- No checkbox for this setting -->
+                        </div>
+                        <div class="o_setting_right_pane" style="max-width: none !important; width: 100% !important; flex: 1 !important; margin-left: 0 !important;">
+                            <span class="o_form_label">Additional Signup Fields Configuration</span>
+                            <div class="text-muted mb-3">
+                                Select models and fields to show during company signup. 
+                                Fields will be stored in appropriate model records automatically.
+                            </div>
+                            
+                            <!-- Hidden fields for computation -->
+                            <field name="all_field_configurations" invisible="1"/>
+                            <field name="available_field_ids" invisible="1"/>
+                            <field name="selected_field_ids_json" invisible="1"/>
+                            
+                            <!-- Single Clean Container -->
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-cogs me-2"></i>Field Configuration
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                
+                                    <!-- Model Selection -->
+                                    <div class="row mb-4">
+                                    <div class="col-md-6">
+                                            <label for="selected_model" class="o_form_label">
+                                                <strong>Select Model:</strong>
+                                            </label>
+                                        <field name="selected_model" 
+                                               options="{'no_create': True, 'no_edit': True}"
+                                                   placeholder="Choose a model to configure..."
+                                                   class="w-100"/>
+                                        </div>
+                                        <div class="col-md-6" invisible="not selected_model">
+                                            <div class="alert alert-info" role="status">
+                                                <strong>To remove this model:</strong><br/>
+                                                Deselect all fields below and click "Save" at the bottom of the page.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Field Selection (appears immediately when model selected) -->
+                                    <div invisible="not selected_model">
+                                        <div class="alert alert-info" role="status">
+                                            <i class="fa fa-info-circle me-2"></i>
+                                            <strong>Select the fields you want to display during company signup.</strong>
+                                            <br/>After selecting fields, click "Save" at the bottom of this page to save your configuration.
+                                        </div>
+                                        
+                                        <!-- Enhanced Field Ordering Interface -->
+                                        <div class="mb-3">
+                                            <!-- Selected Fields (Full Width) -->
+                                            <div class="mb-4">
+                                                <div class="o_form_label mb-2">
+                                                    <strong>📋 Selected Fields (Signup Form Order):</strong>
+                                                    <small class="text-muted d-block">
+                                                        <i class="fa fa-arrows text-primary"></i> Fields appear on signup page in this exact order
+                                                    </small>
+                                                </div>
+                                                <field name="selected_signup_field_ids" 
+                                                       widget="many2many_tags"
+                                                       domain="[('id', 'in', available_field_ids)]"
+                                                       nolabel="1"
+                                                       placeholder="Select fields in desired order..."
+                                                       class="border p-3 rounded bg-light mb-2"
+                                                       options="{'no_create': True, 'no_edit': True}"/>
+                                                
+                                                <!-- Order Instructions -->
+                                                <div class="alert alert-success" role="status">
+                                                    <i class="fa fa-check-circle me-2"></i>
+                                                    <strong>✅ Order Preserved!</strong> Your field order is automatically saved and restored.
+                                                    <br/>To reorder: Remove fields and re-add them in your desired sequence.
+                                                    <br/><small class="text-muted">The order you select is the exact order that appears on the signup page.</small>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Available Fields (Full Width) -->
+                                            <div class="mb-4">
+                                                <div class="o_form_label mb-2">
+                                                    <strong>📚 Available Fields:</strong>
+                                                    <small class="text-muted d-block">Click to add to signup form</small>
+                                                </div>
+                                                <field name="available_field_ids" 
+                                                       widget="many2many_checkboxes"
+                                                       readonly="1"
+                                                       nolabel="1"
+                                                       class="border p-2 rounded bg-light"
+                                                       style="max-height: 400px; overflow-y: auto; width: 100%;"/>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Visual Order Preview -->
+                                        <div class="alert alert-info" invisible="not selected_signup_field_ids" role="status">
+                                            <div class="row">
+                                                <div class="col-md-8">
+                                                    <i class="fa fa-eye me-2"></i>
+                                                    <strong>Signup Form Preview Order:</strong>
+                                                    <div class="mt-2">
+                                                        <small class="text-muted">
+                                                            The selected fields will appear on the signup page in the order you selected them.
+                                                            Check the Configuration Summary below for detailed preview.
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4 text-end">
+                                                    <small class="text-muted">
+                                                        <i class="fa fa-info-circle"></i>
+                                                        This is how fields will appear on the signup page
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    
+                                        <div class="alert alert-success" role="status">
+                                            <i class="fa fa-save me-2"></i>
+                                            <strong>Next Step:</strong> Click the "Save" button at the bottom of this settings page to save your field configuration.
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- No Model Selected Message -->
+                                    <div invisible="selected_model">
+                                        <div class="alert alert-secondary text-center" role="status">
+                                            <i class="fa fa-arrow-up fa-2x mb-2"></i>
+                                            <h6>Select a model above to configure its fields</h6>
+                                            <small class="text-muted">Choose from Contact, Lead/Opportunity, Sales Order, and more...</small>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </setting>
+                    
+                    <!-- Configuration Summary - Same Level as Field Configuration -->
+                    <setting id="configuration_summary_block" 
+                             string="Configuration Summary" 
+                             help="Review configured models and fields for signup forms"
+                             invisible="auth_signup_uninvited != 'b2c' or not auth_signup_company_toggle">
+                        <div class="o_setting_left_pane" style="display: none !important;">
+                            <!-- No checkbox for this setting -->
+                        </div>
+                        <div class="o_setting_right_pane" style="max-width: none !important; width: 100% !important; flex: 1 !important; margin-left: 0 !important;">
+                            
+                            <!-- Single Clean Container with Same Style as Field Configuration -->
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-eye me-2"></i>Configuration Summary
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Configuration Summary Content -->
+                                    <field name="configuration_summary" widget="html" nolabel="1" class="w-100"/>
+                                    
+                                    <!-- Info Text -->
+                                    <div class="alert alert-info mt-3" role="status">
+                                        <i class="fa fa-info-circle me-2"></i>
+                                        <strong>How it works:</strong> These fields will appear in the company signup form and automatically route values to the appropriate model records.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </setting>
+                    
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo> 

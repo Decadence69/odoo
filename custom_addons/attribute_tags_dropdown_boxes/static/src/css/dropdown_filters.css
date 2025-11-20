@@ -181,3 +181,17 @@ body {
   padding-bottom: 96px;                     /* ensures last dropdown is fully reachable */
   scroll-padding-bottom: 96px;              /* helps keyboard focus not hide last item */
 }
+
+.filter-unavailable {
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+}
+
+.filter-dropdown-container.filter-empty {
+    opacity: 0.6;
+}
+
+.filter-disabled label {
+    color: #999 !important;
+    text-decoration: line-through;
+}

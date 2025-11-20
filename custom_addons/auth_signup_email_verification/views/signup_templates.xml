@@ -1,0 +1,707 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Enhanced signup form with company/individual switch -->
+        <template id="enhanced_signup" name="Enhanced Signup with Company/Individual Switch" inherit_id="auth_signup.signup">
+            <xpath expr="//t[@t-call='auth_signup.fields']" position="before">
+                <!-- Company Type Switch (only show if enabled in settings) -->
+                <div class="mb-4" t-if="company_toggle_enabled">
+                    <div class="text-center mb-3">
+                        <h6 class="mb-3">Account Type</h6>
+                        <div class="btn-group" role="group" aria-label="Account type selection">
+                            <input type="radio" class="btn-check" name="company_type" id="individual_radio" value="person" checked="checked"/>
+                            <label class="btn btn-outline-primary" for="individual_radio">
+                                <i class="fa fa-user me-2"></i>Individual
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="company_type" id="company_radio" value="company"/>
+                            <label class="btn btn-outline-primary" for="company_radio">
+                                <i class="fa fa-building me-2"></i>Company
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </template>
+
+        <!-- Override the auth_signup.fields template to add dynamic behavior -->
+        <template id="enhanced_signup_fields" name="Enhanced Auth Signup Fields" inherit_id="auth_signup.fields">
+            <!-- Move login field to have better order for company accounts -->
+            <xpath expr="//div[contains(@class, 'field-login')]" position="replace">
+                <!-- We'll add this back in the right position later -->
+            </xpath>
+            
+            <!-- Update name field label to be dynamic (only if company toggle is enabled) -->
+            <xpath expr="//label[@for='name']" position="replace">
+                <label for="name">
+                    <span id="name_label_individual">Your Name</span>
+                    <span id="name_label_company" style="display: none;" t-if="company_toggle_enabled">Company Name</span>
+                </label>
+            </xpath>
+            
+            <!-- Add company fields and reorder login after name field (only if company toggle is enabled) -->
+            <xpath expr="//div[contains(@class, 'field-name')]" position="after">
+                <!-- No separate contact fields needed for simplified company signup -->
+                
+                <!-- Email field (repositioned for better order) -->
+                <div class="mb-3 field-login">
+                    <label for="login">
+                        <span id="login_label_individual">Your Email</span>
+                        <span id="login_label_company" style="display: none;" t-if="company_toggle_enabled">Company Email</span>
+                    </label>
+                    <input type="text" name="login" t-att-value="login" id="login" class="form-control form-control-sm" autofocus="autofocus"
+                        autocapitalize="off" required="required" t-att-readonly="'readonly' if only_passwords else None"/>
+                    <small class="form-text text-muted">
+                        <span id="login_help_individual">This will be your login email</span>
+                        <span id="login_help_company" style="display: none;" t-if="company_toggle_enabled">Company email for login and communication</span>
+                    </small>
+                </div>
+                
+                <!-- Dynamic Company Fields -->
+                <div id="dynamic_company_fields" style="display: none;" t-if="company_toggle_enabled and dynamic_company_fields">
+                    <t t-foreach="dynamic_company_fields" t-as="field">
+                        <div class="mb-3 dynamic-company-field" t-att-data-field-name="field.get('name')">
+                            
+                            <!-- Text/Char Fields -->
+                            <t t-if="field.get('type') in ['char', 'text']">
+                                <label t-att-for="field.get('name')" class="form-label">
+                                    <t t-esc="field.get('string')"/>
+                                    <span t-if="field.get('required')" class="text-danger">*</span>
+                                </label>
+                                <input t-if="field.get('type') == 'char'" 
+                                       type="text" 
+                                       t-att-name="field.get('name')" 
+                                       t-att-id="field.get('name')" 
+                                       class="form-control form-control-sm"
+                                       t-att-required="field.get('required') and 'required' or None"
+                                       t-att-placeholder="field.get('help') or field.get('string')"
+                                       t-att-value="request.params.get(field.get('name'), '')"/>
+                                <textarea t-if="field.get('type') == 'text'" 
+                                          t-att-name="field.get('name')" 
+                                          t-att-id="field.get('name')" 
+                                          class="form-control form-control-sm"
+                                          rows="3"
+                                          t-att-required="field.get('required') and 'required' or None"
+                                          t-att-placeholder="field.get('help') or field.get('string')"
+                                          t-esc="request.params.get(field.get('name'), '')"></textarea>
+                            </t>
+                            
+                            <!-- Selection Fields -->
+                            <t t-if="field.get('type') == 'selection' and field.get('selection')">
+                                <label t-att-for="field.get('name')" class="form-label">
+                                    <t t-esc="field.get('string')"/>
+                                    <span t-if="field.get('required')" class="text-danger">*</span>
+                                </label>
+                                <select t-att-name="field.get('name')" 
+                                        t-att-id="field.get('name')" 
+                                        class="form-control form-control-sm"
+                                        t-att-required="field.get('required') and 'required' or None">
+                                    <option value="">Select <t t-esc="field.get('string')"/>...</option>
+                                    <t t-foreach="field.get('selection', [])" t-as="option">
+                                        <option t-att-value="option[0]" 
+                                                t-att-selected="request.params.get(field.get('name')) == option[0] and 'selected' or None">
+                                            <t t-esc="option[1]"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </t>
+                            
+                            <!-- Many2one Fields (like industry_id) -->
+                            <t t-if="field.get('type') == 'many2one'">
+                                <label t-att-for="field.get('name')" class="form-label">
+                                    <t t-esc="field.get('string')"/>
+                                    <span t-if="field.get('required')" class="text-danger">*</span>
+                                </label>
+                                <select t-att-name="field.get('name')" 
+                                        t-att-id="field.get('name')" 
+                                        class="form-control form-control-sm dynamic-field"
+                                        t-att-data-model="field.get('source_model')"
+                                        t-att-data-depends-on="field.get('depends_on')"
+                                        t-att-data-depends-field="field.get('depends_field')"
+                                        t-att-required="field.get('required') and 'required' or None">
+                                    <option value="">Select <t t-esc="field.get('string')"/>...</option>
+                                    <t t-foreach="field.get('relation_options', [])" t-as="option">
+                                        <option t-att-value="option[0]" 
+                                                t-att-selected="request.params.get(field.get('name')) == str(option[0]) and 'selected' or None">
+                                            <t t-esc="option[1]"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </t>
+
+                            <!-- Many2many Fields (Generic) - Only show if has data -->
+                            <t t-if="field.get('type') == 'many2many' and field.get('relation_options')">
+                                <label class="form-label">
+                                    <t t-esc="field.get('string')"/>
+                                    <span t-if="field.get('required')" class="text-danger">*</span>
+                                </label>
+                                <select t-att-name="field.get('name')" class="form-control">
+                                    <option value="">Select <t t-esc="field.get('string')"/>...</option>
+                                    <t t-foreach="field.get('relation_options', [])" t-as="option">
+                                        <option t-att-value="option.get('id', option[0] if isinstance(option, tuple) else option)"
+                                                t-att-selected="str(option.get('id', option[0] if isinstance(option, tuple) else option)) == str(request.params.get(field.get('name'))) and 'selected' or None">
+                                            <t t-esc="option.get('name', option[1] if isinstance(option, tuple) else str(option))"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </t>
+                            
+                            <!-- Boolean Fields -->
+                            <t t-if="field.get('type') == 'boolean'">
+                                <div class="form-check">
+                                    <input type="checkbox" 
+                                           t-att-name="field.get('name')" 
+                                           t-att-id="field.get('name')" 
+                                           class="form-check-input"
+                                           value="True"
+                                           t-att-checked="request.params.get(field.get('name')) == 'True' and 'checked' or None"/>
+                                    <label t-att-for="field.get('name')" class="form-check-label">
+                                        <t t-esc="field.get('string')"/>
+                                    </label>
+                                </div>
+                            </t>
+                            
+                            <!-- Binary/Image Fields -->
+                            <t t-if="field.get('type') in ['binary', 'image'] and field.get('is_file')">
+                                <label t-att-for="field.get('name')" class="form-label">
+                                    <t t-esc="field.get('string')"/>
+                                    <span t-if="field.get('required')" class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="file" 
+                                           t-att-name="field.get('name')" 
+                                           t-att-id="field.get('name')" 
+                                           class="form-control"
+                                           t-att-accept="field.get('accept', 'image/*')"
+                                           t-att-required="field.get('required') and 'required' or None"/>
+                                    <span class="input-group-text">
+                                        <i t-if="field.get('type') == 'image'" class="fa fa-image"></i>
+                                        <i t-else="" class="fa fa-file"></i>
+                                    </span>
+                                </div>
+                                <small class="form-text text-muted">
+                                    <t t-if="field.get('type') == 'image'">
+                                        <i class="fa fa-info-circle"></i> Upload an image file (JPG, PNG, GIF, etc.)
+                                    </t>
+                                    <t t-else="">
+                                        <i class="fa fa-info-circle"></i> Upload a file
+                                    </t>
+                                    <span t-if="field.get('help')"> - <t t-esc="field.get('help')"/></span>
+                                </small>
+                            </t>
+                            
+                            <!-- Help text -->
+                            <small t-if="field.get('help') and field.get('type') not in ['binary', 'image']" class="form-text text-muted">
+                                <t t-esc="field.get('help')"/>
+                            </small>
+                        </div>
+                    </t>
+                </div>
+            </xpath>
+        </template>
+
+        <!-- Add file upload support to signup form -->
+        <template id="signup_form_multipart" name="Add File Upload Support" inherit_id="auth_signup.signup">
+            <xpath expr="//form[contains(@class, 'oe_signup_form')]" position="attributes">
+                <attribute name="enctype">multipart/form-data</attribute>
+            </xpath>
+        </template>
+
+        <!-- Add JavaScript for dynamic form behavior (only if company toggle is enabled) -->
+        <template id="signup_form_script" name="Signup Form Script" inherit_id="auth_signup.signup">
+            <xpath expr="//form[contains(@class, 'oe_signup_form')]" position="after">
+                <script type="text/javascript" t-if="company_toggle_enabled">
+                    <![CDATA[
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const individualRadio = document.getElementById('individual_radio');
+                        const companyRadio = document.getElementById('company_radio');
+                        const nameField = document.getElementById('name');
+                        // Removed contact person fields for simplified company signup
+                        const nameLabelIndividual = document.getElementById('name_label_individual');
+                        const nameLabelCompany = document.getElementById('name_label_company');
+                        const loginField = document.getElementById('login');
+                        const loginLabelIndividual = document.getElementById('login_label_individual');
+                        const loginLabelCompany = document.getElementById('login_label_company');
+                        const loginHelpIndividual = document.getElementById('login_help_individual');
+                        const loginHelpCompany = document.getElementById('login_help_company');
+                        const passwordField = document.getElementById('password');
+                        const confirmPasswordField = document.getElementById('confirm_password');
+                        
+                        // Only proceed if elements exist (company toggle is enabled)
+                        if (!individualRadio || !companyRadio) return;
+                        
+                        // Form persistence using localStorage
+                        const STORAGE_KEY = 'odoo_signup_form_state';
+                        
+                        function saveFormState() {
+                            const formState = {
+                                accountType: companyRadio.checked ? 'company' : 'person',
+                                name: nameField ? nameField.value : '',
+                                login: loginField ? loginField.value : '',
+                                // Removed contact fields for simplified signup
+                                timestamp: Date.now()
+                            };
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(formState));
+                        }
+                        
+                        function loadFormState() {
+                            try {
+                                const stored = localStorage.getItem(STORAGE_KEY);
+                                if (!stored) return null;
+                                
+                                const formState = JSON.parse(stored);
+                                
+                                // Check if state is not too old (24 hours)
+                                const maxAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+                                if (Date.now() - formState.timestamp > maxAge) {
+                                    localStorage.removeItem(STORAGE_KEY);
+                                    return null;
+                                }
+                                
+                                return formState;
+                            } catch (e) {
+                                console.warn('Error loading form state:', e);
+                                localStorage.removeItem(STORAGE_KEY);
+                                return null;
+                            }
+                        }
+                        
+                        function clearFormState() {
+                            localStorage.removeItem(STORAGE_KEY);
+                        }
+                        
+                        function restoreFormState() {
+                            const formState = loadFormState();
+                            if (!formState) return;
+                            
+                            // Restore account type
+                            if (formState.accountType === 'company') {
+                                companyRadio.checked = true;
+                                individualRadio.checked = false;
+                            } else {
+                                individualRadio.checked = true;
+                                companyRadio.checked = false;
+                            }
+                            
+                            // Restore form values (only if fields are empty)
+                            if (nameField && !nameField.value && formState.name) {
+                                nameField.value = formState.name;
+                            }
+                            if (loginField && !loginField.value && formState.login) {
+                                loginField.value = formState.login;
+                            }
+                            // Removed contact field restoration for simplified signup
+                        }
+                        
+                        function updateForm() {
+                            if (companyRadio.checked) {
+                                // Company mode
+                                if (nameLabelIndividual) nameLabelIndividual.style.display = 'none';
+                                if (nameLabelCompany) nameLabelCompany.style.display = 'inline';
+                                if (loginLabelIndividual) loginLabelIndividual.style.display = 'none';
+                                if (loginLabelCompany) loginLabelCompany.style.display = 'inline';
+                                if (loginHelpIndividual) loginHelpIndividual.style.display = 'none';
+                                if (loginHelpCompany) loginHelpCompany.style.display = 'inline';
+                                if (nameField) nameField.placeholder = 'e.g. INTERCOM MALI';
+                                if (loginField) loginField.placeholder = 'e.g. hello@intercom.ml';
+                                
+                                // Show dynamic company fields
+                                const dynamicFieldsContainer = document.getElementById('dynamic_company_fields');
+                                if (dynamicFieldsContainer) {
+                                    dynamicFieldsContainer.style.display = 'block';
+                                    // Enable ALL dynamic fields (not just required ones)
+                                    dynamicFieldsContainer.querySelectorAll('input, select, textarea').forEach(function(field) {
+                                        field.disabled = false;
+                                        field.readonly = false;  // Also remove readonly attribute
+                                    });
+                                }
+                            } else {
+                                // Individual mode
+                                if (nameLabelIndividual) nameLabelIndividual.style.display = 'inline';
+                                if (nameLabelCompany) nameLabelCompany.style.display = 'none';
+                                if (loginLabelIndividual) loginLabelIndividual.style.display = 'inline';
+                                if (loginLabelCompany) loginLabelCompany.style.display = 'none';
+                                if (loginHelpIndividual) loginHelpIndividual.style.display = 'inline';
+                                if (loginHelpCompany) loginHelpCompany.style.display = 'none';
+                                if (nameField) nameField.placeholder = 'e.g. Nour AYACHE';
+                                if (loginField) loginField.placeholder = 'e.g. nourayach@gmail.com';
+                                
+                                // Hide dynamic company fields and clear values
+                                const dynamicFieldsContainer = document.getElementById('dynamic_company_fields');
+                                if (dynamicFieldsContainer) {
+                                    dynamicFieldsContainer.style.display = 'none';
+                                    // Clear and disable dynamic fields
+                                    dynamicFieldsContainer.querySelectorAll('input, select, textarea').forEach(function(field) {
+                                        if (field.type === 'checkbox') {
+                                            field.checked = false;
+                                        } else if (field.type === 'file') {
+                                            // Clear file input
+                                            field.value = '';
+                                        } else {
+                                            field.value = '';
+                                        }
+                                        field.disabled = true;
+                                    });
+                                }
+                            }
+                        }
+                        
+                        // Restore form state first (before updateForm)
+                        restoreFormState();
+                        
+                        // Initialize form
+                        updateForm();
+                        
+                        // Add event listeners with state saving
+                        individualRadio.addEventListener('change', function() {
+                            updateForm();
+                            saveFormState();
+                        });
+                        companyRadio.addEventListener('change', function() {
+                            updateForm();
+                            saveFormState();
+                    });
+                        
+                        // Save state on form field changes
+                        function addInputListener(field) {
+                            if (field) {
+                                field.addEventListener('input', saveFormState);
+                                field.addEventListener('change', saveFormState);
+                            }
+                        }
+                        
+                        addInputListener(nameField);
+                        addInputListener(loginField);
+                        // Removed contact field listeners for simplified signup
+                        
+                        // Clear state on successful form submission
+                        const signupForm = document.querySelector('.oe_signup_form');
+                        if (signupForm) {
+                            signupForm.addEventListener('submit', function(e) {
+                                // Only clear state if form validation passes
+                                const requiredFields = signupForm.querySelectorAll('[required]');
+                                let isValid = true;
+                                
+                                requiredFields.forEach(function(field) {
+                                    if (!field.value.trim()) {
+                                        isValid = false;
+                                    }
+                                });
+                                
+                                if (isValid) {
+                                    // Clear state on successful submission
+                                    setTimeout(clearFormState, 100);
+                                }
+                            });
+                        }
+                        
+                        // Dynamic field dependencies (country -> state, etc.)
+                        function setupDynamicFields() {
+                            const dynamicFields = document.querySelectorAll('.dynamic-field');
+                            
+                            dynamicFields.forEach(function(field) {
+                                const dependsOn = field.getAttribute('data-depends-on');
+                                const dependsField = field.getAttribute('data-depends-field');
+                                const modelName = field.getAttribute('data-model');
+                                
+                                if (dependsOn && dependsField && modelName) {
+                                    const parentField = document.getElementById(dependsOn);
+                                    
+                                    if (parentField) {
+                                        parentField.addEventListener('change', function() {
+                                            refreshDependentField(field, modelName, dependsField, parentField.value);
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                        
+                        function refreshDependentField(dependentField, modelName, parentFieldName, parentValue) {
+                            const fieldName = dependentField.getAttribute('name');
+                            
+                            // Show loading state
+                            dependentField.disabled = true;
+                            dependentField.innerHTML = '<option value="">Loading...</option>';
+                            
+                            // Make AJAX call to get updated options
+                            fetch('/signup/get_field_options', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    jsonrpc: '2.0',
+                                    method: 'call',
+                                    params: {
+                                        field_name: fieldName,
+                                        model_name: modelName,
+                                        parent_field: parentFieldName,
+                                        parent_value: parentValue
+                                    }
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                const result = data.result || data;
+                                
+                                if (result.error) {
+                                    console.error('Error loading options:', result.error);
+                                    dependentField.innerHTML = '<option value="">Error loading options</option>';
+                                } else {
+                                    // Clear current options
+                                    dependentField.innerHTML = '<option value="">Select...</option>';
+                                    
+                                    // Add new options
+                                    if (result.options && result.options.length > 0) {
+                                        result.options.forEach(function(option) {
+                                            const optionElement = document.createElement('option');
+                                            optionElement.value = option.id;
+                                            optionElement.textContent = option.name;
+                                            dependentField.appendChild(optionElement);
+                                        });
+                                    } else {
+                                        dependentField.innerHTML = '<option value="">No options available</option>';
+                                    }
+                                }
+                                
+                                // Re-enable field
+                                dependentField.disabled = false;
+                            })
+                            .catch(error => {
+                                console.error('Error fetching options:', error);
+                                dependentField.innerHTML = '<option value="">Error loading options</option>';
+                                dependentField.disabled = false;
+                            });
+                        }
+                        
+                        // Initialize dynamic fields
+                        setupDynamicFields();
+                        
+                        // Initialize many2many tags fields (minimal JavaScript)
+                        function setupMany2ManyTags() {
+                            const tagContainers = document.querySelectorAll('.o_field_many2many_tags');
+                            
+                            tagContainers.forEach(function(container) {
+                                const fieldName = container.getAttribute('data-field-name');
+                                const selectedArea = container.querySelector('.o_field_tags');
+                                const availableTags = container.querySelectorAll('.o_tag_available');
+                                const hiddenCheckboxes = container.querySelectorAll('.o_tag_option');
+                                
+                                if (!selectedArea || !availableTags.length) return;
+                                
+                                // Initialize selected tags from form state
+                                function initializeSelectedTags() {
+                                    hiddenCheckboxes.forEach(function(checkbox) {
+                                        if (checkbox.checked) {
+                                            addSelectedTag(checkbox.value, checkbox.getAttribute('data-label'));
+                                        }
+                                    });
+                                }
+                                
+                                // Add a selected tag
+                                function addSelectedTag(tagId, tagLabel) {
+                                    // Check if already added
+                                    if (selectedArea.querySelector('[data-tag-id="' + tagId + '"]')) return;
+                                    
+                                    const tagElement = document.createElement('span');
+                                    tagElement.className = 'badge bg-primary me-1 mb-1';
+                                    tagElement.setAttribute('data-tag-id', tagId);
+                                    tagElement.innerHTML = tagLabel + ' <span class="ms-1" style="cursor: pointer;">×</span>';
+                                    
+                                    // Add remove functionality
+                                    tagElement.querySelector('span').addEventListener('click', function() {
+                                        removeSelectedTag(tagId);
+                                    });
+                                    
+                                    selectedArea.appendChild(tagElement);
+                                    
+                                    // Update hidden checkbox
+                                    const checkbox = container.querySelector('input[value="' + tagId + '"]');
+                                    if (checkbox) checkbox.checked = true;
+                                    
+                                    // Hide from available tags
+                                    const availableTag = container.querySelector('.o_tag_available[data-id="' + tagId + '"]');
+                                    if (availableTag) availableTag.style.display = 'none';
+                                }
+                                
+                                // Remove a selected tag
+                                function removeSelectedTag(tagId) {
+                                    const tagElement = selectedArea.querySelector('[data-tag-id="' + tagId + '"]');
+                                    if (tagElement) tagElement.remove();
+                                    
+                                    // Update hidden checkbox
+                                    const checkbox = container.querySelector('input[value="' + tagId + '"]');
+                                    if (checkbox) checkbox.checked = false;
+                                    
+                                    // Show in available tags
+                                    const availableTag = container.querySelector('.o_tag_available[data-id="' + tagId + '"]');
+                                    if (availableTag) availableTag.style.display = 'inline-block';
+                                }
+                                
+                                // Add click handlers to available tags
+                                availableTags.forEach(function(tag) {
+                                    tag.addEventListener('click', function() {
+                                        const tagId = this.getAttribute('data-id');
+                                        const tagLabel = this.getAttribute('data-label');
+                                        addSelectedTag(tagId, tagLabel);
+                                    });
+                                });
+                                
+                                // Initialize from existing form state
+                                initializeSelectedTags();
+                            });
+                        }
+                        
+                        // Initialize many2many tags
+                        setupMany2ManyTags();
+                        
+                        // Add visual indicator when state is restored
+                        const formState = loadFormState();
+                        if (formState) {
+                            console.log('Form state restored from localStorage:', formState.accountType);
+                            
+                            // Show a subtle notification
+                            const notification = document.createElement('div');
+                            notification.innerHTML = '<i class="fa fa-check-circle text-success"></i> Form progress restored';
+                            notification.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; padding: 8px 12px; font-size: 12px; opacity: 0.9; max-width: 250px;';
+                            
+                            document.body.appendChild(notification);
+                            
+                            // Auto-dismiss after 3 seconds
+                            setTimeout(function() {
+                                if (notification.parentNode) {
+                                    notification.remove();
+                                }
+                            }, 3000);
+                        }
+                    });
+                    ]]>
+                </script>
+            </xpath>
+        </template>
+
+        <!-- This module uses Odoo's standard signup form -->
+        <!-- Additional signup customizations can be added here if needed -->
+
+        <!-- Add Sign up button to website header when signup is enabled -->
+        <template id="website_signup_button" name="Website Sign up Button" inherit_id="portal.user_sign_in">
+            <xpath expr="//a[@t-attf-href='/web/login']" position="before">
+                <!-- Add Sign up button before Sign in button when signup is enabled -->
+                <li t-if="request.env['res.users']._get_signup_invitation_scope() == 'b2c'"
+                    t-nocache="Signup setting can change"
+                    t-attf-class="#{_item_class} o_no_autohide_item me-2">
+                    <a t-attf-href="/web/signup" t-attf-class="#{_link_class} btn btn-primary btn-sm">
+                        Sign up
+                    </a>
+                </li>
+            </xpath>
+        </template>
+
+        <!-- Email Verification Pending Page (Professional Layout) -->
+        <template id="email_verification_pending" name="Email Verification Pending">
+            <t t-call="web.login_layout">
+                <div class="oe_login_form clearfix">
+                    <div class="text-center mb-4">
+                        <i class="fa fa-envelope-o fa-3x text-primary mb-3"></i>
+                        <h3 class="mb-3">Email Verification Required</h3>
+                    </div>
+                    
+                    <div class="alert alert-info text-center" role="status">
+                        <h5 class="alert-heading">Check Your Email</h5>
+                        <p class="mb-2">
+                            We've sent a verification email to <strong t-esc="email"></strong>.
+                        </p>
+                        <p class="mb-0">
+                            Please check your inbox and click the verification link to complete your account creation.
+                        </p>
+                    </div>
+                    
+                    <div class="alert alert-warning" role="alert">
+                        <small>
+                            <i class="fa fa-clock-o"></i> 
+                            <strong>Note:</strong> The verification link will expire in <strong t-esc="verification_hours or '144'"/> hours for security reasons. 
+                            If you don't receive the email, check your spam folder.
+                        </small>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a t-attf-href="/web/signup?{{ keep_query() }}" class="btn btn-link btn-sm">
+                            <i class="fa fa-arrow-left"></i> Back to Signup
+                        </a>
+                        <span class="mx-2">|</span>
+                        <a href="/web/login" class="btn btn-link btn-sm">
+                            <i class="fa fa-sign-in"></i> Sign In
+                        </a>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+        <!-- Email Verification Success Page -->
+        <template id="email_verification_success" name="Email Verification Success">
+            <t t-call="web.login_layout">
+                <div class="oe_login_form clearfix">
+                    <div class="text-center mb-4">
+                        <i class="fa fa-check-circle fa-3x text-success mb-3"></i>
+                        <h3 class="mb-3">Email Verified Successfully!</h3>
+                    </div>
+                    
+                    <div class="alert alert-success text-center" role="status">
+                        <h5 class="alert-heading">Welcome to <t t-esc="request.env.company.name or 'Odoo'"/>!</h5>
+                        <p class="mb-2">
+                            Your email has been verified and your account has been created successfully.
+                        </p>
+                        <p class="mb-0">
+                            You are now logged in and can access your account.
+                        </p>
+                    </div>
+                    
+                    <div class="text-center mt-4 d-grid">
+                        <a href="/my" class="btn btn-primary">
+                            <i class="fa fa-user"></i> Go to My Account
+                        </a>
+                        <a href="/web" class="btn btn-link btn-sm mt-2">
+                            <i class="fa fa-home"></i> Go to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+        <!-- Email Verification Error Page -->
+        <template id="email_verification_error" name="Email Verification Error">
+            <t t-call="web.login_layout">
+                <div class="oe_login_form clearfix">
+                    <div class="text-center mb-4">
+                        <i class="fa fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                        <h3 class="mb-3">Verification Failed</h3>
+                    </div>
+                    
+                    <div class="alert alert-danger text-center" role="alert">
+                        <h5 class="alert-heading">Invalid or Expired Link</h5>
+                        <p class="mb-2" t-if="error_msg" t-esc="error_msg"></p>
+                        <p class="mb-2" t-if="not error_msg">
+                            The verification link is invalid or has expired.
+                        </p>
+                        <p class="mb-0">
+                            Please try signing up again or contact support if you continue having issues.
+                        </p>
+                    </div>
+                    
+                    <div class="text-center mt-4 d-grid">
+                        <a t-attf-href="/web/signup?{{ keep_query() }}" class="btn btn-primary">
+                            <i class="fa fa-user-plus"></i> Try Signup Again
+                        </a>
+                        <a href="/web/login" class="btn btn-link btn-sm mt-2">
+                            <i class="fa fa-sign-in"></i> Back to Login
+                        </a>
+                    </div>
+                </div>
+            </t>
+        </template>
+
+
+
+    </data>
+</odoo> 

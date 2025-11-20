@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Signup Email Verification + Dynamic Fields - Odoo 18</title>
+    <style>
+        /* Modern Clean CSS for Odoo App Store */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #ffffff;
+        }
+        
+        /* Header Section */
+        .header-section {
+            background: linear-gradient(135deg, #875A7B 0%, #6a4c93 100%);
+            color: white;
+            text-align: center;
+            padding: 60px 20px;
+            margin-bottom: 0;
+        }
+        
+        .header-section h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .header-section .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* Image Sections - Clean and Separated */
+        .image-section {
+            background: #f8f9fa;
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .image-section img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: 3px solid #875A7B;
+        }
+        
+        .image-title,
+        .image-section .image-title,
+        div.image-section div.image-title {
+            font-size: 3rem !important;
+            color: #875A7B !important;
+            font-weight: 700 !important;
+            margin-bottom: 25px !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            letter-spacing: 0.5px !important;
+            line-height: 1.2 !important;
+        }
+        
+        /* Content Sections - Text Only */
+        .content-section {
+            background: white;
+            padding: 60px 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+        
+        .content-section h2 {
+            color: #875A7B;
+            font-size: 2.2rem;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .content-section h3 {
+            color: #2c3e50;
+            font-size: 1.6rem;
+            margin: 40px 0 20px 0;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        
+        .content-section h4 {
+            color: #875A7B;
+            font-size: 1.3rem;
+            margin: 30px 0 15px 0;
+            font-weight: 600;
+        }
+        
+        .content-section p {
+            margin-bottom: 20px;
+            text-align: left;
+            font-size: 1.1rem;
+            color: #444;
+            max-width: 800px;
+        }
+        
+        .content-section ul {
+            margin: 25px 0 25px 0;
+            padding-left: 20px;
+        }
+        
+        .content-section li {
+            margin-bottom: 12px;
+            font-size: 1.05rem;
+            color: #555;
+            line-height: 1.7;
+        }
+        
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .feature-box {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 5px solid #875A7B;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .feature-box.success {
+            border-left-color: #28a745;
+        }
+        
+        .feature-box.info {
+            border-left-color: #007bff;
+        }
+        
+        .feature-box.warning {
+            border-left-color: #ffc107;
+        }
+        
+        /* Tables */
+        .feature-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 2px solid #333;
+        }
+        
+        .feature-table th {
+            background: #875A7B;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            border: 1px solid #333;
+        }
+        
+        .feature-table td {
+            padding: 12px 15px;
+            border: 1px solid #333;
+        }
+        
+        /* Responsive */
+        /* CSS-Only Gallery with Navigation */
+        .image-gallery {
+            background: #f8f9fa;
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .gallery-slider {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+        
+        .gallery-container {
+            display: flex;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .gallery-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .gallery-slide {
+            min-width: 100%;
+            scroll-snap-align: start;
+            position: relative;
+        }
+        
+        .gallery-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            border: 3px solid #875A7B;
+            border-radius: 8px;
+        }
+        
+        .gallery-nav {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 20px;
+            padding: 0 20px;
+        }
+        
+        .gallery-nav a {
+            background: #875A7B;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .gallery-nav a:hover {
+            background: #6a4c93;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(135, 90, 123, 0.3);
+        }
+        
+        .gallery-arrows {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(135, 90, 123, 0.9);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        
+        .gallery-arrows:hover {
+            background: rgba(135, 90, 123, 1);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .gallery-prev {
+            left: 20px;
+        }
+        
+        .gallery-next {
+            right: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .header-section h1 {
+                font-size: 2rem;
+            }
+            
+            .header-section .subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .image-title,
+            .image-section .image-title,
+            div.image-section div.image-title {
+                font-size: 3rem !important;
+                margin-bottom: 20px !important;
+                color: #875A7B !important;
+                font-weight: 700 !important;
+                line-height: 1.2 !important;
+            }
+            
+            .content-section {
+                padding: 30px 15px;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .gallery-nav {
+                gap: 5px;
+            }
+            
+            .gallery-tab {
+                padding: 8px 15px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- HEADER SECTION -->
+<div class="header-section">
+    <h1>🔐 Auth Signup Email Verification + Dynamic Fields</h1>
+    <div class="subtitle">
+        Professional email verification system with dynamic field configuration for Odoo 18. 
+        Enhance security and collect custom data during user registration with company/individual toggles.
+            </div>
+        </div>
+
+<!-- IMAGE: Module Configuration Interface -->
+<div class="image-section">
+    <div class="image-title" style="font-size: 2.5rem !important; font-weight: 700 !important; color: #875A7B !important;">⚙️ Module Configuration Interface</div>
+    <img src="02_admin_company_toggle_and_email_validity.png" alt="Module Configuration Interface" />
+    </div>
+
+<!-- CONTENT: Module Configuration -->
+<div class="content-section">
+    <h2>⚙️ Module Configuration</h2>
+    
+    <h3>🔧 Our Module's Settings</h3>
+    <p>Configure the Company/Individual Selection and Dynamic Signup Fields in the module interface.</p>
+    
+    <h4>📋 Configuration Options</h4>
+    <ul>
+        <li><strong>Company/Individual Selection</strong> - Enable account type choice</li>
+        <li><strong>Dynamic Signup Fields</strong> - Configure additional Contact fields</li>
+        <li><strong>Field Configuration</strong> - Select model and fields for company signups</li>
+        <li><strong>Configuration Summary</strong> - Review configured models and fields</li>
+    </ul>
+</div>
+
+<!-- IMAGE: Model Selection Interface -->
+<div class="image-section">
+    <div class="image-title" style="font-size: 2.5rem !important; font-weight: 700 !important; color: #875A7B !important;">🔄 Model Selection Interface</div>
+    <img src="03_signup_company_individual_toggle.png" alt="Model Selection Interface" />
+</div>
+
+<!-- CONTENT: Model Selection -->
+<div class="content-section">
+    <h2>📋 Model Selection</h2>
+    
+    <h3>🎯 Choose Data Model</h3>
+    <p>Select Contact model to store company registration data.</p>
+    
+    <h4>📋 Process</h4>
+    <ul>
+        <li><strong>Field Configuration</strong> - Access model dropdown</li>
+        <li><strong>Contact Model</strong> - Choose Contact for user data</li>
+        <li><strong>Field Loading</strong> - System loads Contact fields</li>
+        <li><strong>Ready</strong> - Prepare field selection</li>
+    </ul>
+</div>
+
+<!-- IMAGE: Company/Individual Toggle -->
+<!-- <div class="image-section">
+    <div class="image-title">🔄 Step 3: User Account Type Selection</div>
+    <img src="03_signup_company_individual_toggle.png" alt="Signup Company Individual Toggle" />
+        </div> -->
+        
+<!-- CONTENT: Account Type Selection -->
+<!-- <div class="content-section">
+    <h2>🎯 Model Selection: The Foundation of Field Configuration</h2>
+    
+    <h3>📋 Choosing Your Data Destination</h3>
+    <p>This crucial step determines where your collected registration data will be stored within your Odoo system. The model selection interface provides you with powerful flexibility to integrate signup data directly into your existing business workflows.</p>
+    
+    <h4>🔧 The Model Selection Interface</h4>
+    <p>As shown in the screenshot, the <strong>Field Configuration</strong> section presents a clean, intuitive dropdown interface that allows administrators to choose their target model for data collection.</p>
+
+    <div class="feature-grid">
+            <div class="feature-box success">
+            <h4>📊 Contact Model Selection</h4>
+            <p><strong>Primary Choice:</strong> The Contact model is typically the most logical choice for user registration data</p>
+            <p>When you select "Contact" from the dropdown, the system prepares to load all available Contact model fields for your configuration.</p>
+            </div>
+        
+        <div class="feature-box info">
+            <h4>🎨 Theme-Consistent Design</h4>
+            <p><strong>Odoo Theme Integration:</strong> Our module automatically adapts to your active Odoo theme colors and styling</p>
+            <p>Whether using default Odoo colors or custom themes, the account type toggle and all UI elements maintain perfect visual consistency with your installation's activated theme.</p>
+        </div>
+    </div>
+
+    <h3>🎯 What Happens When You Select Contact Model</h3>
+    <table class="feature-table">
+        <thead>
+            <tr>
+                <th style="border: 1px solid #333;">Action</th>
+                <th style="border: 1px solid #333;">System Response</th>
+                <th style="border: 1px solid #333;">Administrator Benefit</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>Select Contact Model</strong></td>
+                <td style="border: 1px solid #333;">System loads all Contact model fields</td>
+                <td style="border: 1px solid #333;">Access to comprehensive contact information fields</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>Field Analysis</strong></td>
+                <td style="border: 1px solid #333;">Filters suitable fields for signup forms</td>
+                <td style="border: 1px solid #333;">Only relevant, user-fillable fields are presented</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>Configuration Ready</strong></td>
+                <td style="border: 1px solid #333;">Prepares field selection interface</td>
+                <td style="border: 1px solid #333;">Ready to customize registration form fields</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>💡 Contact Model Integration Benefits</h3>
+    <ul>
+        <li><strong>Direct Integration:</strong> Registration data flows directly into Contact records</li>
+        <li><strong>No Data Duplication:</strong> Users become proper Contact records immediately</li>
+        <li><strong>Optimized Performance:</strong> Focused on Contact model for maximum efficiency</li>
+        <li><strong>Scalable Architecture:</strong> Easy to modify and expand Contact field selection as needs evolve</li>
+    </ul>
+
+    <h3>🚀 Preparing for Field Selection</h3>
+    <p>Once you select the Contact model from this dropdown, the system will reveal the comprehensive field selection interface, allowing you to choose exactly which Contact fields should appear in your company registration forms.</p>
+
+    <p><em><strong>Next Step:</strong> After selecting Contact model, the system will display all available Contact fields for you to choose from, which we'll explore in the next screenshot.</em></p>
+            </div> -->
+
+<!-- IMAGE: Field Configuration Interface -->
+<div class="image-section">
+    <div class="image-title" style="font-size: 2.5rem !important; font-weight: 700 !important; color: #875A7B !important;">🔧 Dynamic Field Configuration</div>
+    <img src="04_admin_field_configuration_interface.png" alt="Field Configuration Interface" />
+        </div>
+        
+<!-- CONTENT: Field Configuration -->
+<div class="content-section">
+    <h2>🛠️ Detailed Field Selection Interface</h2>
+    
+    <h3>📋 Contact Model Field Configuration</h3>
+    <p>Once the Contact model is selected, the interface reveals the powerful field configuration system where administrators can precisely control which Contact fields appear in the company signup form.</p>
+    
+    <h4>🎯 Key Interface Elements Shown</h4>
+    <p>This screenshot demonstrates the core field management functionality after Contact model selection:</p>
+    
+    <div class="feature-grid">
+        <div class="feature-box success">
+            <h4>📝 Selected Fields (Signup Form Order)</h4>
+            <p><strong>Manual Field Entry:</strong> Administrators type the exact field names they want to appear on the signup form</p>
+            <p>The highlighted yellow box shows where administrators manually enter field names in the exact order they should appear to users during company registration.</p>
+        </div>
+        
+            <div class="feature-box info">
+            <h4>📋 Available Fields Browser</h4>
+            <p><strong>Contact Field Catalog:</strong> Complete list of all Contact model fields available for selection</p>
+            <p>Browse through fields like Date Fetched, Data Fetched, Amount of Abandoned Carts, and other Contact-specific fields to choose what's relevant for your business.</p>
+            </div>
+        </div>
+
+    <h4>⚙️ How the Field Selection Works</h4>
+    <table class="feature-table">
+        <thead>
+            <tr>
+                <th style="border: 1px solid #333;">Step</th>
+                <th style="border: 1px solid #333;">Administrator Action</th>
+                <th style="border: 1px solid #333;">System Behavior</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>1. Field Discovery</strong></td>
+                <td style="border: 1px solid #333;">Browse the "Available Fields" list to see all Contact fields</td>
+                <td style="border: 1px solid #333;">System displays comprehensive Contact model field catalog</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>2. Field Selection</strong></td>
+                <td style="border: 1px solid #333;">Manually type desired field names in "Selected Fields" box</td>
+                <td style="border: 1px solid #333;">System prepares these fields for signup form integration</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>3. Order Definition</strong></td>
+                <td style="border: 1px solid #333;">Enter field names in the exact order for user experience</td>
+                <td style="border: 1px solid #333;">Fields appear on signup form in specified sequence</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>4. Save Configuration</strong></td>
+                <td style="border: 1px solid #333;">Click "Save" to activate the field configuration</td>
+                <td style="border: 1px solid #333;">Company signup forms now include selected Contact fields</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>🔧 Configuration Management Features</h3>
+    <ul>
+        <li><strong>Manual Field Control:</strong> Type exact field names for precise selection</li>
+        <li><strong>Order Specification:</strong> Define field sequence for optimal user experience</li>
+        <li><strong>Company-Only Display:</strong> Selected fields appear exclusively for Company account registrations</li>
+        <li><strong>Contact Integration:</strong> All selected fields map directly to Contact model records</li>
+        <li><strong>Model Removal:</strong> Easy instructions to deselect all fields and remove model configuration</li>
+    </ul>
+
+    <h3>🎨 Administrative Benefits</h3>
+    <div class="feature-grid">
+        <div class="feature-box warning">
+            <h4>🎯 Precise Control</h4>
+            <p>Administrators have complete control over which Contact fields appear and in what order, ensuring the signup form matches business requirements exactly.</p>
+        </div>
+        
+            <div class="feature-box info">
+            <h4>📊 Field Variety</h4>
+            <p>Access to comprehensive Contact field types including text, selection, boolean, date, many2one relationships, and custom fields created through Odoo Studio.</p>
+            </div>
+        </div>
+    </div>
+
+<!-- IMAGE: Field Selection and Ordering -->
+<div class="image-section">
+        <div class="image-title" style="font-size: 2.5rem !important; font-weight: 700 !important; color: #875A7B !important;">📊 Field Selection & Ordering</div>
+    <img src="05_admin_field_selection_ordering.png" alt="Admin Field Selection Ordering" />
+        </div>
+        
+<!-- CONTENT: Field Selection -->
+<div class="content-section">
+    <h2>📊 Configuration Summary</h2>
+    
+    <h3>✅ Field Configuration Overview</h3>
+    <p>Shows configured models and fields for signup forms.</p>
+    
+    <h4>🔧 Configured Fields</h4>
+    <ul>
+        <li><strong>Country (country_id)</strong> - Geographic location</li>
+        <li><strong>State (state_id)</strong> - Regional identification</li>
+        <li><strong>City (city)</strong> - Local address</li>
+        <li><strong>Industry (industry_id)</strong> - Business classification</li>
+    </ul>
+</div>
+
+<!-- IMAGE: Configuration Summary -->
+<div class="image-section">
+        <div class="image-title" style="font-size: 2.5rem !important; font-weight: 700 !important; color: #875A7B !important;">👤 Individual Account Registration</div>
+    <img src="06_admin_configuration_summary.png" alt="Individual Account Registration Form" />
+            </div>
+
+<!-- CONTENT: Individual Account Registration -->
+<div class="content-section">
+    <h2>👤 Individual Registration</h2>
+    
+    <h3>🎯 Simple Personal Registration</h3>
+    <p>Basic form for individual users with essential fields only.</p>
+    
+    <h4>📋 Individual Fields</h4>
+    <ul>
+        <li><strong>Your Name</strong> - Personal identification</li>
+        <li><strong>Your Email</strong> - Login credentials</li>
+        <li><strong>Password</strong> - Account security</li>
+        <li><strong>Confirm Password</strong> - Password verification</li>
+    </ul>
+</div>
+
+<!-- IMAGE: Individual Signup Form -->
+<div class="image-section">
+    <div class="image-title" style="font-size: 2.5rem !important; font-weight: 700 !important; color: #875A7B !important;">🏢 Company Account Registration</div>
+    <img src="07_user_signup_form_individual.png" alt="Individual Signup Form" />
+            </div>
+
+<!-- CONTENT: Company Signup Dynamic Fields -->
+<div class="content-section">
+    <h2>🏢 Company Account Registration with Dynamic Fields</h2>
+    
+    <h3>💼 Advanced Company Registration Experience</h3>
+    <p>This screenshot demonstrates the sophisticated Company account registration form, showcasing the module's dynamic field system with intelligent data relationships and real-time field updates.</p>
+    
+    <h4>🔄 Account Type Selection Interface</h4>
+    <p>The top of the form shows the elegant account type toggle with "Company" selected:</p>
+    
+    <div class="feature-grid">
+        <div class="feature-box success">
+            <h4>🏢 Company Selection Active</h4>
+            <p><strong>Visual Feedback:</strong> The "Company" button is highlighted in blue, clearly showing the selected state</p>
+            <p>Our module's styling seamlessly integrates with Odoo's default theme colors and maintains visual consistency with the activated theme.</p>
+        </div>
+        
+        <!-- <div class="feature-box info">
+            <h4>👤 Individual Option Available</h4>
+            <p><strong>Alternative Choice:</strong> The "Individual" button remains visible but inactive, allowing easy account type switching</p>
+            <p>Theme-consistent design ensures perfect integration with your Odoo installation's color scheme.</p>
+        </div> -->
+    </div>
+
+    <h4>📋 Company Registration Fields</h4>
+    <p>When Company is selected, the form displays comprehensive business information fields:</p>
+    
+    <table class="feature-table">
+        <thead>
+            <tr>
+                <th style="border: 1px solid #333;">Field Category</th>
+                <th style="border: 1px solid #333;">Field Name</th>
+                <th style="border: 1px solid #333;">Dynamic Behavior</th>
+                <th style="border: 1px solid #333;">Business Purpose</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>Company Identity</strong></td>
+                <td style="border: 1px solid #333;">Company Name, Company Email</td>
+                <td style="border: 1px solid #333;">Static fields with validation</td>
+                <td style="border: 1px solid #333;">Core business identification</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>Geographic Location</strong></td>
+                <td style="border: 1px solid #333;">Country (Mali)</td>
+                <td style="border: 1px solid #333;">Selection triggers State field refresh</td>
+                <td style="border: 1px solid #333;">Primary location determination</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>Regional Data</strong></td>
+                <td style="border: 1px solid #333;">State (BAMAKO ML)</td>
+                <td style="border: 1px solid #333;">AJAX-refreshed based on Country selection</td>
+                <td style="border: 1px solid #333;">Regional compliance and targeting</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>Business Classification</strong></td>
+                <td style="border: 1px solid #333;">Industry</td>
+                <td style="border: 1px solid #333;">Dynamic selection dropdown</td>
+                <td style="border: 1px solid #333;">Business categorization</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>Contact Information</strong></td>
+                <td style="border: 1px solid #333;">Phone, Mobile</td>
+                <td style="border: 1px solid #333;">Static fields with validation</td>
+                <td style="border: 1px solid #333;">Communication channels</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>Legal Information</strong></td>
+                <td style="border: 1px solid #333;">Company ID, Tax ID</td>
+                <td style="border: 1px solid #333;">Static fields for compliance</td>
+                <td style="border: 1px solid #333;">Legal and tax requirements</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>⚡ Dynamic Many2One Field Intelligence</h3>
+    <div class="feature-grid">
+        <div class="feature-box warning">
+            <h4>🔄 Dynamic Many2One Field Intelligence</h4>
+            <p><strong>Real-Time AJAX Updates:</strong> Our module automatically refreshes any many2one field's related data when its parent field changes</p>
+            <p>The Mali→BAMAKO (ML) example demonstrates this: when users select a country, all related state fields refresh via AJAX to show only relevant options for that country.</p>
+        </div>
+        
+        <div class="feature-box success">
+            <h4>🔄 Seamless User Experience</h4>
+            <p><strong>No Page Refreshes:</strong> Field updates happen instantly without page reloads, providing a smooth, modern registration experience</p>
+            <p>Users see immediate feedback as related fields populate with relevant options based on their previous selections.</p>
+        </div>
+    </div>
+
+    <h4>🎨 Advanced Form Features</h4>
+    <ul>
+        <li><strong>Dynamic Field Relationships:</strong> Country selection automatically filters State options via AJAX</li>
+        <li><strong>Theme Integration:</strong> Perfect alignment with Odoo's active theme colors and styling</li>
+        <li><strong>Comprehensive Data Collection:</strong> All configured Contact fields appear seamlessly</li>
+        <li><strong>Real-Time Validation:</strong> Fields validate as users type for immediate feedback</li>
+        <li><strong>Professional Layout:</strong> Logical field progression optimized for business registration</li>
+        <li><strong>Mobile Responsive:</strong> Perfect display and functionality on all devices</li>
+    </ul>
+
+    <h3>🚀 Business Registration Benefits</h3>
+    <ul>
+        <li><strong>Complete Profiles:</strong> Comprehensive business information collected during registration</li>
+        <li><strong>Geographic Intelligence:</strong> Smart location fields ensure accurate regional data</li>
+        <li><strong>Compliance Ready:</strong> Legal and tax identification fields for business requirements</li>
+        <li><strong>Professional Experience:</strong> Sophisticated form demonstrates platform capabilities</li>
+        <li><strong>Data Quality:</strong> Dynamic relationships ensure accurate, consistent information</li>
+    </ul>
+</div>
+
+<!-- IMAGE: Company Signup Form -->
+<div class="image-section">
+    <div class="image-title" style="font-size: 2.5rem !important; font-weight: 700 !important; color: #875A7B !important;">🏢 Company Account Registration</div>
+    <img src="08_user_signup_form_company.png" alt="Company Signup Form" />
+    </div>
+
+<!-- CONTENT: Company Signup -->
+<!-- <div class="content-section">
+    <h2>🏢 Company Registration: Complete Data Example</h2>
+    
+    <h3>📋 Completed Company Registration Form</h3>
+    <p>This screenshot shows the same Company registration form with complete sample data, demonstrating how the dynamic fields work together to collect comprehensive business information.</p>
+    
+    <h4>💼 Sample Company Data Demonstration</h4>
+    <p>The form shows realistic business data for "INTERCOM MALI" company, illustrating the type of information collected:</p>
+    
+    <table class="feature-table">
+        <thead>
+            <tr>
+                <th style="border: 1px solid #333;">Field Category</th>
+                <th style="border: 1px solid #333;">Sample Data Shown</th>
+                <th style="border: 1px solid #333;">Data Quality Benefits</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>Company Identity</strong></td>
+                <td style="border: 1px solid #333;">INTERCOM MALI, hello@intercom.ml</td>
+                <td style="border: 1px solid #333;">Professional business identification and primary contact</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>Geographic Data</strong></td>
+                <td style="border: 1px solid #333;">Mali → BAMAKO (ML) → NIARELA</td>
+                <td style="border: 1px solid #333;">Complete location hierarchy from country to city district</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>Business Classification</strong></td>
+                <td style="border: 1px solid #333;">IT/Communication</td>
+                <td style="border: 1px solid #333;">Industry categorization for targeted services</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>Contact Information</strong></td>
+                <td style="border: 1px solid #333;">00223 75 17 12 23, 00223 76 40 33 63</td>
+                <td style="border: 1px solid #333;">Multiple communication channels for business contact</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>Legal Identifiers</strong></td>
+                <td style="border: 1px solid #333;">CompanyID_example, TaxID_example1</td>
+                <td style="border: 1px solid #333;">Compliance-ready legal and tax identification</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>Security</strong></td>
+                <td style="border: 1px solid #333;">••••••••••••, ••••••••••••</td>
+                <td style="border: 1px solid #333;">Secure password entry with confirmation validation</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>🔄 Dynamic Field Relationship in Action</h3>
+    <div class="feature-grid">
+        <div class="feature-box success">
+            <h4>🌍 Geographic Intelligence Demonstrated</h4>
+            <p><strong>Mali → BAMAKO (ML) → NIARELA:</strong> Perfect example of the AJAX-powered field relationships</p>
+            <p>Shows how selecting Mali automatically populated BAMAKO (ML) in the State field, and NIARELA appears in the City field, demonstrating the intelligent geographic data flow.</p>
+        </div>
+        
+        <div class="feature-box info">
+            <h4>📊 Complete Business Profile</h4>
+            <p><strong>Comprehensive Data Collection:</strong> Every configured Contact field is properly filled with realistic business information</p>
+            <p>Demonstrates the module's ability to collect complete, structured business data during the registration process.</p>
+        </div>
+    </div>
+
+    <h4>💡 Data Quality & User Experience</h4>
+    <ul>
+        <li><strong>Realistic Examples:</strong> Sample data shows the type of information businesses typically provide</li>
+        <li><strong>Complete Profiles:</strong> All dynamic Contact fields working together to create comprehensive business records</li>
+        <li><strong>Geographic Accuracy:</strong> Smart location fields ensure precise regional identification</li>
+        <li><strong>Professional Validation:</strong> Password fields show proper security handling with masked display</li>
+        <li><strong>Business-Ready Format:</strong> Phone numbers, emails, and IDs in appropriate business formats</li>
+        <li><strong>Industry Classification:</strong> IT/Communication sector properly categorized for business analytics</li>
+    </ul>
+
+    <h3>🎯 Registration Process Benefits</h3>
+    <div class="feature-grid">
+        <div class="feature-box warning">
+            <h4>🚀 Immediate Business Value</h4>
+            <p><strong>Complete Contact Records:</strong> Upon registration, businesses become fully populated Contact records with all relevant information structured and ready for business operations.</p>
+        </div>
+        
+        <div class="feature-box success">
+            <h4>📈 Enhanced Business Intelligence</h4>
+            <p><strong>Rich Data Foundation:</strong> Comprehensive registration data provides immediate insights for sales, marketing, and customer service teams.</p>
+        </div>
+    </div>
+
+    <h4>🔧 Form Completion Features</h4>
+    <ul>
+        <li><strong>Visual Confirmation:</strong> All fields properly populated showing successful form completion</li>
+        <li><strong>Ready for Submission:</strong> Prominent "Sign up" button indicates form is ready for processing</li>
+        <li><strong>Data Consistency:</strong> All information follows proper formatting and validation rules</li>
+        <li><strong>Professional Presentation:</strong> Business-grade form suitable for enterprise-level registrations</li>
+    </ul>
+</div> -->
+
+<!-- IMAGE: Dynamic Contact Fields -->
+<div class="image-section">
+    <div class="image-title" style="font-size: 2.5rem !important; font-weight: 700 !important; color: #875A7B !important;">📧 Email Verification Process</div>
+    <img src="09_user_signup_dynamic_contact_fields.png" alt="Email Verification Required Screen" />
+            </div>
+
+<!-- CONTENT: Email Verification -->
+<div class="content-section">
+    <h2>📧 Professional Email Verification Process</h2>
+    
+    <h3>🔒 Secure Account Activation Screen</h3>
+    <p>After successful registration form submission, users are immediately presented with this professional email verification screen that guides them through the account activation process.</p>
+    
+    <h4>📋 Email Verification Interface Elements</h4>
+    <p>The screenshot shows the comprehensive verification interface with clear user guidance:</p>
+    
+    <div class="feature-grid">
+        <div class="feature-box success">
+            <h4>📨 Clear Communication</h4>
+            <p><strong>"Check Your Email":</strong> Prominent header immediately informs users of the next required step</p>
+            <p>Professional messaging ensures users understand exactly what they need to do to complete their registration.</p>
+        </div>
+        
+        <div class="feature-box info">
+            <h4>🎯 Specific Instructions</h4>
+            <p><strong>Email Address Display:</strong> Shows the exact email address (hello@intercom.ml) where verification was sent</p>
+            <p>Eliminates confusion by clearly identifying which email account users should check for the verification message.</p>
+        </div>
+    </div>
+
+    <h4>⚙️ Verification Process Details</h4>
+    <p>The interface provides comprehensive guidance for successful email verification:</p>
+    
+    <table class="feature-table">
+        <thead>
+            <tr>
+                <th style="border: 1px solid #333;">Step</th>
+                <th style="border: 1px solid #333;">User Action Required</th>
+                <th style="border: 1px solid #333;">System Guidance Provided</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>1. Email Check</strong></td>
+                <td style="border: 1px solid #333;">Check inbox for verification email</td>
+                <td style="border: 1px solid #333;">"We've sent a verification email to hello@intercom.ml"</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>2. Email Access</strong></td>
+                <td style="border: 1px solid #333;">Open email and locate verification link</td>
+                <td style="border: 1px solid #333;">"Please check your inbox and click the verification link"</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #333;"><strong>3. Account Activation</strong></td>
+                <td style="border: 1px solid #333;">Click verification link to activate</td>
+                <td style="border: 1px solid #333;">"to complete your account creation"</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>⏰ Security & Time Management</h3>
+    <div class="feature-grid">
+        <div class="feature-box warning">
+            <h4>🕐 Verification Link Expiry</h4>
+            <p><strong>144 Hours Validity:</strong> "The verification link will expire in 144 hours for security reasons"</p>
+            <p>Clear time limit helps users understand the urgency while providing reasonable time for completion.</p>
+        </div>
+        
+        <div class="feature-box info">
+            <h4>📧 Spam Folder Guidance</h4>
+            <p><strong>Proactive Support:</strong> "If you don't receive the email, check your spam folder"</p>
+            <p>Prevents support tickets by guiding users to common email delivery locations.</p>
+        </div>
+    </div>
+
+    <h4>🔗 User Navigation Options</h4>
+    <ul>
+        <li><strong>Back to Signup:</strong> "← Back to Signup" link allows users to return if needed</li>
+        <li><strong>Sign In Access:</strong> "→ Sign In" option for users who already have accounts</li>
+        <li><strong>Clear Visual Design:</strong> Professional layout maintains brand credibility during waiting period</li>
+        <li><strong>Mobile Responsive:</strong> Perfect display and functionality on all devices</li>
+    </ul>
+
+    <h3>🛡️ Security Benefits Demonstrated</h3>
+    <ul>
+        <li><strong>Email Ownership Verification:</strong> Ensures users control the provided email address</li>
+        <li><strong>Spam Prevention:</strong> Prevents automated fake account creation</li>
+        <li><strong>Time-Limited Access:</strong> 144-hour expiry provides security without excessive urgency</li>
+        <li><strong>Professional Communication:</strong> High-quality verification process builds user trust</li>
+        <li><strong>Clear Instructions:</strong> Reduces user confusion and support requests</li>
+    </ul>
+
+    <h3>🎨 User Experience Excellence</h3>
+    <div class="feature-grid">
+        <div class="feature-box success">
+            <h4>📱 Modern Interface Design</h4>
+            <p><strong>Clean Layout:</strong> Professional appearance reinforces platform credibility and user confidence in the verification process.</p>
+        </div>
+        
+        <div class="feature-box warning">
+            <h4>🔄 Seamless Integration</h4>
+            <p><strong>Branded Experience:</strong> Consistent visual design maintains brand identity throughout the registration journey.</p>
+        </div>
+    </div>
+</div>
+
+<!-- IMAGE: Email Verification Page -->
+<div class="image-section">
+    <div class="image-title" style="font-size: 2.5rem !important; font-weight: 700 !important; color: #875A7B !important;">📨 Professional Email Template</div>
+    <img src="10_user_verification_pending_page.png" alt="Professional Email Template" />
+    </div>
+
+<!-- CONTENT: Email Template -->
+<div class="content-section">
+    <h2>📨 Professional Email Template</h2>
+    
+    <h3>💌 The Verification Email</h3>
+    <p>Users receive this professional email after registration with a clear verification button and 144-hour expiry time.</p>
+    
+    <h4>📋 Key Features</h4>
+    <ul>
+        <li><strong>Personal greeting</strong> with company name</li>
+        <li><strong>Clear verification button</strong> in company colors</li>
+        <li><strong>Domain and login information</strong> for reference</li>
+        <li><strong>Professional branding</strong> and contact details</li>
+    </ul>
+</div>
+
+<!-- IMAGE: Success Banner -->
+<div class="image-section">
+    <div class="image-title" style="font-size: 2.5rem !important; font-weight: 700 !important; color: #875A7B !important;">🎉 Successful Registration Confirmation</div>
+    <img src="11_success_banner_temp.png" alt="Success Banner" />
+                </div>
+
+<!-- CONTENT: Success Confirmation -->
+<div class="content-section">
+    <h2>🎉 Successful Account Access</h2>
+    
+    <h3>✅ Registration Complete</h3>
+    <p>After email verification, users access their personalized account dashboard with company information and portal features.</p>
+    
+    <h4>📋 Account Dashboard Features</h4>
+    <ul>
+        <li><strong>Company profile</strong> with registered business information</li>
+        <li><strong>Orders and invoices</strong> management sections</li>
+        <li><strong>Security settings</strong> for account configuration</li>
+        <li><strong>Contact details</strong> ready for business operations</li>
+    </ul>
+</div>
+        
+<!-- IMAGE: Professional Email Template -->
+<div class="image-section">
+    <div class="image-title" style="font-size: 2.5rem !important; font-weight: 700 !important; color: #875A7B !important;">📊 Contact Record Created</div>
+    <img src="12_professional_email_template.png" alt="Contact Record in Odoo Backend" />
+            </div>
+
+<!-- CONTENT: Contact Record -->
+<div class="content-section">
+    <h2>📊 Complete Contact Record</h2>
+    
+    <h3>✅ Registration Data in Odoo</h3>
+    <p>The registration automatically creates a complete Contact record in Odoo with all the dynamic field data collected during signup.</p>
+    
+    <h4>📋 Contact Record Features</h4>
+    <ul>
+        <li><strong>Complete address</strong> from Mali → BAMAKO → NIARELA</li>
+        <li><strong>Business information</strong> including Tax ID and Company ID</li>
+        <li><strong>Contact details</strong> with phone, mobile, and email</li>
+        <li><strong>Industry classification</strong> for business segmentation</li>
+    </ul>
+</div>
+
+<!-- CSS-ONLY IMAGE GALLERY SECTION -->
+<div class="image-gallery">
+    <h2 style="color: #875A7B; margin-bottom: 30px; font-size: 2.5rem;">📸 Screenshot Gallery</h2>
+    <p style="margin-bottom: 30px; font-size: 1.2rem; color: #666;">Navigate through all module screenshots using the controls below:</p>
+    
+    <div class="gallery-slider">
+        <div class="gallery-container">
+            <div class="gallery-slide" id="slide1">
+                <img src="02_admin_company_toggle_and_email_validity.png" alt="Module Configuration Interface" class="gallery-image" />
+            </div>
+            <div class="gallery-slide" id="slide2">
+                <img src="03_signup_company_individual_toggle.png" alt="Model Selection Interface" class="gallery-image" />
+            </div>
+            <div class="gallery-slide" id="slide3">
+                <img src="04_admin_field_configuration_interface.png" alt="Field Configuration Interface" class="gallery-image" />
+            </div>
+            <div class="gallery-slide" id="slide4">
+                <img src="05_admin_field_selection_ordering.png" alt="Field Selection & Ordering" class="gallery-image" />
+            </div>
+            <div class="gallery-slide" id="slide5">
+                <img src="06_admin_configuration_summary.png" alt="Individual Account Registration" class="gallery-image" />
+            </div>
+            <div class="gallery-slide" id="slide6">
+                <img src="07_user_signup_form_individual.png" alt="Company Account Registration" class="gallery-image" />
+            </div>
+            <div class="gallery-slide" id="slide7">
+                <img src="08_user_signup_form_company.png" alt="Company Account Registration" class="gallery-image" />
+            </div>
+            <div class="gallery-slide" id="slide8">
+                <img src="09_user_signup_dynamic_contact_fields.png" alt="Email Verification Process" class="gallery-image" />
+            </div>
+            <div class="gallery-slide" id="slide9">
+                <img src="10_user_verification_pending_page.png" alt="Professional Email Template" class="gallery-image" />
+            </div>
+            <div class="gallery-slide" id="slide10">
+                <img src="11_success_banner_temp.png" alt="Registration Success" class="gallery-image" />
+            </div>
+            <div class="gallery-slide" id="slide11">
+                <img src="12_professional_email_template.png" alt="Contact Record Created" class="gallery-image" />
+            </div>
+        </div>
+        
+        <!-- Navigation Arrows -->
+        <a href="#slide1" class="gallery-arrows gallery-prev">‹</a>
+        <a href="#slide11" class="gallery-arrows gallery-next">›</a>
+    </div>
+    
+    <!-- Thumbnail Navigation -->
+    <div class="gallery-nav">
+        <a href="#slide1">Admin Config</a>
+        <a href="#slide2">Model Selection</a>
+        <a href="#slide3">Field Config</a>
+        <a href="#slide4">Field Selection</a>
+        <a href="#slide5">Individual Form</a>
+        <a href="#slide6">Company Form 1</a>
+        <a href="#slide7">Company Form 2</a>
+        <a href="#slide8">Email Verification</a>
+        <a href="#slide9">Email Template</a>
+        <a href="#slide10">Success Page</a>
+        <a href="#slide11">Contact Record</a>
+    </div>
+</div>
+
+<!-- FINAL SUMMARY SECTION -->
+<div class="content-section">
+    <h2>🚀 Complete Solution Summary</h2>
+    
+    <h3>🎯 What You Get</h3>
+    <p>This comprehensive module provides everything needed for professional user registration with email verification and dynamic field collection.</p>
+    
+    <div class="feature-grid">
+        <div class="feature-box success">
+            <h4>🔧 Admin Features</h4>
+            <ul>
+                <li>Native Website Settings integration</li>
+                <li>Dynamic field configuration interface</li>
+                <li>Company/Individual toggle controls</li>
+                <li>Professional email template customization</li>
+                <li>Native Odoo field validation</li>
+            </ul>
+                    </div>
+        
+        <div class="feature-box info">
+            <h4>👥 User Experience</h4>
+            <ul>
+                <li>Intelligent form adaptation</li>
+                <li>Mobile-responsive design</li>
+                <li>Professional verification process</li>
+                <li>Clear success confirmation</li>
+                <li>Seamless account activation</li>
+            </ul>
+                </div>
+                
+        <div class="feature-box warning">
+            <h4>🛡️ Security & Quality</h4>
+            <ul>
+                <li>Email verification for all registrations</li>
+                <li>Native Odoo data validation and quality controls</li>
+                <li>Secure account creation process</li>
+                <li>Professional email communication</li>
+                <li>Compliance with best practices</li>
+                        </ul>
+                    </div>
+                </div>
+                
+    <h3>💼 Business Benefits</h3>
+    <ul>
+        <li><strong>Enhanced Security:</strong> Email verification prevents fake registrations</li>
+                        <li><strong>Better Data Quality:</strong> Native validation ensures clean, usable data</li>
+        <li><strong>Professional Image:</strong> High-quality registration process enhances credibility</li>
+        <li><strong>Flexible Configuration:</strong> Adapt to changing business requirements easily</li>
+        <li><strong>Improved Conversion:</strong> User-friendly process increases signup completion</li>
+        <li><strong>Compliance Ready:</strong> Meets security and data protection standards</li>
+    </ul>
+
+    <h3>⚡ Technical Excellence</h3>
+    <ul>
+        <li><strong>Odoo 18 Compatible:</strong> Built for the latest Odoo version</li>
+        <li><strong>Native Integration:</strong> Seamlessly integrates with existing Odoo features</li>
+        <li><strong>Performance Optimized:</strong> Efficient code with minimal system impact</li>
+        <li><strong>Mobile Responsive:</strong> Perfect experience on all devices</li>
+        <li><strong>Extensible Design:</strong> Easy to customize and extend</li>
+        <li><strong>Professional Support:</strong> Comprehensive documentation and support</li>
+    </ul>
+                </div>
+
+</body>
+</html> 

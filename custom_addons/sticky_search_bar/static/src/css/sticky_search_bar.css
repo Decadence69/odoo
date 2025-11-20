@@ -1,0 +1,29 @@
+
+
+/* Ensure ALL parent containers allow sticky positioning */
+.container {
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+}
+
+/* Make products header sticky below navbar */
+.products_header {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0px !important;
+    z-index: 1020 !important;
+    background-color: #fff !important;
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* For mobile, adjust the top position */
+@media (max-width: 991px) {
+    .products_header {
+        top: 0px !important;
+    }
+}

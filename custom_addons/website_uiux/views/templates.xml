@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Replace "All Products" desktop breadcrumb with a Back button -->
+    <template id="product_breadcrumb_back_button"
+              inherit_id="website_sale.product"
+              name="Replace All Products with Back in Breadcrumb">
+
+        <!-- REPLACE the first desktop breadcrumb <li>, don't insert a new one -->
+        <xpath expr="//ol[contains(@class, 'o_wsale_breadcrumb')]/li[contains(@class, 'breadcrumb-item') and contains(@class, 'd-none') and contains(@class, 'd-lg-inline-block')][1]"
+               position="replace">
+            <li class="o_not_editable breadcrumb-item d-none d-lg-inline-block">
+                <a href="javascript:history.back()">
+                    <i class="oi oi-chevron-left me-1" role="presentation"/>Back
+                </a>
+            </li>
+        </xpath>
+    </template>
+
+    <!-- Add Go to My Orders button on confirmation -->
+    <template id="confirmation_add_my_orders_button"
+              inherit_id="website_sale.confirmation"
+              name="Add Go to My Orders Button">
+        <xpath expr="//div[h3[contains(text(), 'Thank you for your order')]]" position="replace">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>Thank you for your order.</h3>
+                <div class="d-flex gap-2 ms-auto">
+                    <a role="button"
+                       class="d-none d-md-inline-block btn btn-primary"
+                       href="/shop/print"
+                       target="_blank"
+                       aria-label="Print"
+                       title="Print">
+                        <i class="fa fa-print me-2"></i>Print
+                    </a>
+                    <a role="button"
+                       class="btn btn-info"
+                       href="/my/orders"
+                       aria-label="Go to My Orders"
+                       title="Go to My Orders">
+                        <i class="fa fa-list me-2"></i>Go to My Orders
+                    </a>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

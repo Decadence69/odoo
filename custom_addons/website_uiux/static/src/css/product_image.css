@@ -1,0 +1,122 @@
+/* ===== Product layout container ===== */
+#product_detail_main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start !important; /* top-align both image + info columns */
+}
+
+/* ===== Product image column ===== */
+#product_detail_main .o_wsale_product_images {
+  flex: 0 0 33% !important;
+  max-width: 33% !important;
+  align-self: flex-start !important;
+  margin-top: -10px !important;
+}
+
+/* ===== Product info column (title, price, etc.) ===== */
+#product_detail_main .o_wsale_product_information {
+  flex: 0 0 67% !important;
+  max-width: 67% !important;
+  align-self: flex-start !important;
+}
+
+/* Inner wrapper in each carousel slide */
+#product_detail_main .o_wsale_product_images .carousel-item > .position-relative.d-inline-flex {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100%;
+  min-height: 300px; /* desktop visual height */
+  text-align: center;
+}
+
+/* Product image */
+#product_detail_main img.product_detail_img {
+  width: auto !important;
+  max-width: 320px !important;
+  height: auto !important;
+  object-fit: contain !important;
+  margin: 0px auto !important;
+  display: block !important;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* --- LOWER ONLY THE TEXT SECTION TO MATCH IMAGE HEIGHT --- */
+#product_detail_main #product_details {
+  margin-top: 35px !important; /* Adjust value for perfect alignment (20–40px typically) */
+}
+
+#product_detail_main #product_details h1[itemprop="name"] {
+  margin-top: 0px !important; /* Prevent double spacing */
+}
+
+/* Remove any carousel padding that might push image down */
+#product_detail_main .o_wsale_product_images .o_carousel_product_outer,
+#product_detail_main .o_wsale_product_images .carousel-inner {
+  padding-top: 0 !important;
+}
+
+/* === Add top padding only when there's a single image (no real carousel use) === */
+#product_detail_main .o_wsale_product_images[data-image-amount="1"] img.product_detail_img {
+  padding-top: 43px; /* adjust as needed */
+}
+
+/* Safety: if there IS a multi-image carousel, remove padding */
+#product_detail_main .o_wsale_product_images:has(.carousel-inner .carousel-item + .carousel-item) img.product_detail_img {
+  padding-top: 0 !important;
+}
+
+.o_wsale_product_page {
+    .product_detail_img {
+        cursor: default !important;
+        pointer-events: none;
+    }
+    
+    .zoomodoo-flyout,
+    .zoomodoo-lens {
+        display: none !important;
+    }
+}
+
+/* ===== Mobile ===== */
+@media (max-width: 768px) {
+  /* Stack columns */
+  #product_detail_main .o_wsale_product_images,
+  #product_detail_main .o_wsale_product_information {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Top-align the inner wrapper instead of centering */
+  #product_detail_main .o_wsale_product_images .carousel-item > .position-relative.d-inline-flex {
+    display: flex !important;
+    justify-content: center !important;   /* keep horizontally centered */
+    align-items: flex-start !important;   /* push image to the top */
+    min-height: auto !important;
+    padding-top: 0 !important;
+  }
+
+  /* Ensure no stray margins push the image down */
+  #product_detail_main .o_wsale_product_images img.product_detail_img {
+    margin-top: 0 !important;
+    max-width: 85vw !important;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+
+  /* Remove padding from carousel wrapper */
+  #product_detail_main .o_wsale_product_images .o_carousel_product_outer,
+  #product_detail_main .o_wsale_product_images .carousel-inner {
+    padding-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Reset text margin on mobile (stacked view) */
+  #product_detail_main #product_details {
+    margin-top: 0px !important;
+  }
+  
+  #product_detail_main .o_wsale_product_images[data-image-amount="1"] img.product_detail_img {
+    padding-top: 2px;  /* or a smaller value if you still want some space */
+  }
+}

@@ -1,6 +1,6 @@
 {
     'name': 'Dentist Specialty Signup',
-    'version': '18.0.1.0.0',
+    'version': '18.0.1.0.1',
     'category': 'Website',
     'summary': 'Add specialty selection for dentist signup using Job Position',
     'description': """
@@ -10,6 +10,11 @@
     'data': [
         'views/portal_templates.xml',
     ],
+    'assets': {
+        'web.assets_frontend': [
+            'dentist_signup/static/src/css/signup_fields.css',
+        ],
+    },
     'installable': True,
     'application': False,
     'auto_install': False,
